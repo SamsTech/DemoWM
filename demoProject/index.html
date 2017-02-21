@@ -1,0 +1,52 @@
+<html>
+<head>
+  <script type="text/javascript" src="server.js"></script>
+</head>
+<body>
+  <h1> Print User List </h1>
+  <form action="http://127.0.0.1:8081/listUser" method="GET">
+      <input type = "submit" value = "Submit">
+  </form>
+  <h1> Print User </h1>
+  <form action="http://127.0.0.1:8081/getUser" method="GET">
+      ID : <input type="text" name="userID"/><br>
+      <input type = "submit" value = "Submit">
+  </form>
+  <h1> Add User </h1>
+  <form action="http://127.0.0.1:8081/addUser" method="GET">
+    First Name: <input type = "text" name = "first_name">  <br>
+    Last Name: <input type = "text" name = "last_name"> <br>
+    Payment Details: <br>
+    Name on card: <input type = "text" name="name_on_card"><br>
+    Card Type: <select name="card_type">
+                  <option value="Amex">Amex</option>
+                  <option value="Discover">Discover</option>
+                  <option value="Chase">Chase</option>
+                  <option value="BofA">BofA</option>
+                </select> <br>
+    Card Number: <input type="text" name="card_number"><br>
+    ExpDate [MM/YY]: <input type = "text" name="exp_date"><br>
+    CVV: <input type = "text" name="cvv"><br>
+      <input type = "submit" value = "Submit">
+  </form>
+  <h1> Add Item </h1>
+  <form action="http://127.0.0.1:8081/addItem" method="GET">
+    cartID : <input type="text" name="cartID"/><br>
+    UPC : <input type="text" name="upc"/><br>
+    Quantity:<input type="text" name="quantity"/><br>
+    UserID : <input type="text" name="userID"/><br>
+      <input type = "submit" value = "Submit">
+  </form>
+  <h1> Delete Item </h1>
+  <form action="http://127.0.0.1:8081/deleteItem" method="GET">
+    cartID : <input type="text" name="cartID"/><br>
+    UPC : <input type="text" name="upc"/><br>
+    UserID : <input type="text" name="userID"/><br>
+      <input type = "submit" value = "Submit">
+  </form>
+
+<textarea rows="4" cols="50" id="txtBoard">
+bla bla bla
+</textarea>
+</body>
+</html>
