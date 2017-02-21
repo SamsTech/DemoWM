@@ -1,9 +1,17 @@
 <html>
 <head>
   <script type="text/javascript" src="server.js"></script>
+  <style>
+  .completed{
+    color:green;
+  }
+  .notcompleted{
+    color:red;
+  }
+  </style>
 </head>
 <body>
-  <h1> Print User List </h1>
+  <h1 class="notcompleted"> Print User List </h1>
   <form action="http://127.0.0.1:8081/listUser" method="GET">
       <input type = "submit" value = "Submit">
   </form>
@@ -12,7 +20,7 @@
       ID : <input type="text" name="userID"/><br>
       <input type = "submit" value = "Submit">
   </form>
-  <h1> Add User </h1>
+  <h1 class="notcompleted"> Add User </h1>
   <form action="http://127.0.0.1:8081/addUser" method="GET">
     First Name: <input type = "text" name = "first_name">  <br>
     Last Name: <input type = "text" name = "last_name"> <br>
@@ -29,7 +37,7 @@
     CVV: <input type = "text" name="cvv"><br>
       <input type = "submit" value = "Submit">
   </form>
-  <h1> Add Item </h1>
+  <h1 class="completed"> Add Item </h1>
   <form action="http://127.0.0.1:8081/addItem" method="GET">
     cartID : <input type="text" name="cartID"/><br>
     UPC : <input type="text" name="upc"/><br>
@@ -37,10 +45,21 @@
     UserID : <input type="text" name="userID"/><br>
       <input type = "submit" value = "Submit">
   </form>
-  <h1> Delete Item </h1>
+  <h1 class="notcompleted"> Delete Item </h1>
   <form action="http://127.0.0.1:8081/deleteItem" method="GET">
     cartID : <input type="text" name="cartID"/><br>
     UPC : <input type="text" name="upc"/><br>
+    UserID : <input type="text" name="userID"/><br>
+      <input type = "submit" value = "Submit">
+  </form>
+  <h1 class="completed"> Get Cart </h1>
+  <form action="http://127.0.0.1:8081/getCart" method="GET">
+    cartID : <input type="text" name="cartID"/><br>
+      <input type = "submit" value = "Submit">
+  </form>
+  <h1 class="completed"> Checkout </h1>
+  <form action="http://127.0.0.1:8081/checkout" method="GET">
+    cartID : <input type="text" name="cartID"/><br>
     UserID : <input type="text" name="userID"/><br>
       <input type = "submit" value = "Submit">
   </form>

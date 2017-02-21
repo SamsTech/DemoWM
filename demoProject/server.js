@@ -60,6 +60,27 @@ app.get('/addItem', function(req,res){
   writeFile(__dirname+"/data/json/","carts.json", carts);
 });
 
+// This funciton is to get a cart
+app.get('/getCart', function(req, res){
+  var response = getCart(req.query.cartID);
+  res.end(JSON.stringify(response));
+});
+
+// This function is for checkout
+app.get('/checkout', function(req, res){
+  var cartID = "cart"+req.query.cartID;
+  var userID = "user"+req.query.userID;
+  var cartResponse = getCart(req.query.cartID);
+  response = {
+    "userID": userID,
+    // TODO: Add this statu to cart object
+    "staus": "checkedout",
+    "response": cartResponse
+  }
+  res.end(JSON.stringify(response));
+});
+
+
 /* -------------------------- Utility function --------------------------*/
 var readFile = function(dir, fileName){
   var data = fs.readFileSync(dir+fileName);
@@ -67,7 +88,7 @@ var readFile = function(dir, fileName){
 };
 var writeFile = function(dir, fileName, data){
   var result = fs.writeFile(dir+fileName,
-                  JSON.stringify(data), function(err){
+                  JSON.stringify(data, null,'\t'), function(err){
                     if(err){
                       return console.log(err);
                     }
@@ -75,7 +96,27 @@ var writeFile = function(dir, fileName, data){
               });
 };
 var sizeOf = function(jsonObj){ return Object.keys(jsonObj).length };
-
+var getCart = function(ID){
+  var cartID = "cart"+ID;
+  // reding carts.json
+  var carts=readFile(__dirname+"/data/json/","carts.json");
+  carts = JSON.parse(carts);
+  // selecting cart
+  var NumOfCarts = sizeOf(carts);
+  var response;
+  if(parseInt(ID) <= NumOfCarts){
+      var cart = carts[cartID];
+      response = cart;
+  }
+  else{
+    var err = {
+      "status":500,
+      "description":"CartID not found. CartID: "+cartID
+    }
+    response = err;
+  }
+  return response;
+};
 /* -------------------------- Server Config --------------------------*/
 var server =app.listen(8081, function(){
   var host = server.address().address;
