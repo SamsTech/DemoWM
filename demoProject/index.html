@@ -11,11 +11,11 @@
   </style>
 </head>
 <body>
-  <h1 class="notcompleted"> Print User List </h1>
+  <h1 class="completed"> Print User List </h1>
   <form action="http://127.0.0.1:8081/listUser" method="GET">
       <input type = "submit" value = "Submit">
   </form>
-  <h1> Print User </h1>
+  <h1 class="notcompleted"> Get User </h1>
   <form action="http://127.0.0.1:8081/getUser" method="GET">
       ID : <input type="text" name="userID"/><br>
       <input type = "submit" value = "Submit">
@@ -24,6 +24,7 @@
   <form action="http://127.0.0.1:8081/addUser" method="GET">
     First Name: <input type = "text" name = "first_name">  <br>
     Last Name: <input type = "text" name = "last_name"> <br>
+    Password: <input type ="text" name="pwd"><br>
     Payment Details: <br>
     Name on card: <input type = "text" name="name_on_card"><br>
     Card Type: <select name="card_type">
