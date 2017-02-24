@@ -67,5 +67,24 @@
 <textarea rows="4" cols="50" id="txtBoard">
 bla bla bla
 </textarea>
+
+<h1> Print Group</h1>
+<form action="http://127.0.0.1:8081/listGroups" method="GET">
+    <input type = "submit" value = "Submit">
+</form>
+
+<h1 class="completed"> Create Group </h1>
+<form action="http://127.0.0.1:8081/AddGroup" method="GET">
+  QRString: <input type = "text" name = "QRString">  <br>
+  UserID: <input type = "text" name = "userID"> <br>
+  <input type = "submit" value = "Submit">
+</form>
+
+<h1 class="completed"> Get Group </h1>
+<form action="http://127.0.0.1:8081/getGroup" method="GET">
+  cartID : <input type="text" name="cartID"/><br>
+           <input type = "submit" value = "Submit">
+</form>
+
 </body>
 </html>
