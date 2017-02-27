@@ -1,32 +1,27 @@
 {
-  "item1" :{
-    "upc": 123456789,
-    "name": "Test Item 1",
+  "0000000000000000040660" :{
+    "name": "GREEN BEANS",
+    "price": "8.3",
+    "currency": "USD"
+  },
+  "0000000000070770000320" :{
+    "name": "Milk",
     "price": "10.00",
     "currency": "USD"
   },
-  "item2" :{
-    "upc": 12356789,
-    "name": "Test Item 2",
-    "price": "15.00",
+  "0000000000092317097050" :{
+    "name": "DAIPER",
+    "price": "10.73",
     "currency": "USD"
   },
-  "item3" :{
-    "upc": 12345789,
-    "name": "Test Item 3",
-    "price": "30.00",
+  "0000000000040487311000" :{
+    "name": "BEER",
+    "price": "4.45",
     "currency": "USD"
   },
-  "item4" :{
-    "upc": 12345678,
-    "name": "Test Item 4",
-    "price": "50.00",
-    "currency": "USD"
-  },
-  "item5" :{
-    "upc": 13456789,
-    "name": "Test Item 5",
-    "price": "100.00",
+  "0000000000027500095310" :{
+    "name": "COOKIES",
+    "price": "2.01",
     "currency": "USD"
   }
 }

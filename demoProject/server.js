@@ -35,7 +35,7 @@ app.get('/addUser', function(req, res) {
   var data = readFile(__dirname+"/data/json/", "users.json");
   //console.log(data.toString());
   data = JSON.parse(data);
-  NumOfUsers = sizeOf(data);
+  //NumOfUsers = sizeOf(data);
   user = {
     "firstname": fName,
     "lastname": lName,
@@ -48,35 +48,66 @@ app.get('/addUser', function(req, res) {
         "cvv":cvv
     }
   };
-  data["user"+(NumOfUsers+1)]=user;
+  data = addEntry("user", data, user);
   writeFile(__dirname+"/data/json/", "users.json", data);
 });
 
 
 // This function Add new Items to the specified cart
 app.get('/addItem', function(req,res){
-  var cartID = "cart"+req.query.cartID;
-  var itemID = "item"+req.query.upc;
-  var userID = "user"+req.query.userID;
+  var cartID = req.query.cartID;
+  var upc = req.query.upc;
+  var userID = req.query.userID;
   var quantity = req.query.quantity;
 
-  var carts=readFile(__dirname+"/data/json/","carts.json");
+  console.log("/addItem : "+JSON.stringify(req.query));
+  var response = null;
 
+  var carts=readFile(__dirname+"/data/json/","carts.json");
   carts = JSON.parse(carts);
-  var NumOfCarts = sizeOf(carts);
-  var cart = carts[cartID];
-  console.log("Selected Cart: "+ cartID+" : "+JSON.stringify(cart));
-  var cartSize = sizeOf(cart);
-  var cartEntry = {
-    "id":itemID,
-    "quantity":quantity,
-    "addedBy":userID
-  };
-  cart["i"+(cartSize+1)] = cartEntry;
-  console.log("Modified: "+JSON.stringify(cart));
-  carts[cartID] = cart;
-  //console.log(JSON.stringify(carts));
-  writeFile(__dirname+"/data/json/","carts.json", carts);
+
+  var cart = getCart(cartID);
+
+  if(!cart.hasOwnProperty("error")){
+    // check if item is present
+    if(cart["status"] == "InProgress"){
+      if(!cart.hasOwnProperty(upc)){
+        var itemEntry = {
+          "quantity": quantity,
+          "addedBy": userID
+        };
+        cart[upc] = itemEntry;
+        carts[cartID] = cart;
+        response = cart;
+        writeFile(__dirname+"/data/json/","carts.json", carts);
+      } else {
+        response = {
+          "error": "300",
+          "description": "Item is already present in cart. UPC :"+upc+" cartID : "+cartID
+        }
+      }
+    }
+    else {
+      response = {
+        "error": "200",
+        "description":"Cart Status is not In Progress"
+      };
+    }
+  } else {
+    // cartID not present. Create Empty cart with status "InProgress"
+    cart = {
+      "status": "InProgress",
+      upc:{
+        "quantity": quantity,
+        "addedBy": userID
+      }
+    }
+    carts[cartID] = cart;
+    response = cart;
+    writeFile(__dirname+"/data/json/","carts.json", carts);
+  }
+
+  res.end(JSON.stringify(response));
 });
 
 // This funciton is to get a cart
@@ -99,6 +130,15 @@ app.get('/checkout', function(req, res){
   res.end(JSON.stringify(response));
 });
 
+// This function is to delete user
+app.get('/deleteUser', function(req, res){
+  var ID = req.query.userID;
+  var users = readFile(__dirname+"/data/json/","users.json");
+  users = JSON.parse(users);
+  delete users["user"+ID];
+  console.log("Number of Users : "+sizeOf(users))
+  writeFile(__dirname+"/data/json/","users.json", users);
+});
 
 // Ankita's services - code
 
@@ -166,10 +206,9 @@ app.get('/getGroup', function(req, res){
 
 });
 
-
-
 /* -------------------------- Utility function --------------------------*/
 var readFile = function(dir, fileName){
+  console.log("Reading File : "+dir+fileName);
   var data = fs.readFileSync(dir+fileName);
   return data
 };
@@ -183,49 +222,55 @@ var writeFile = function(dir, fileName, data){
               });
 };
 var sizeOf = function(jsonObj){ return Object.keys(jsonObj).length };
+var isPresent = function(list, element){
+  if(list.hasOwnProperty(element))
+      return true;
+  else
+      return false;
+}
+
 var getCart = function(ID){
-  var cartID = "cart"+ID;
-  // reding carts.json
-  var carts=readFile(__dirname+"/data/json/","carts.json");
+  var cartID = ID;
+  var response = null;
+  var carts = readFile(__dirname+"/data/json/","carts.json");
   carts = JSON.parse(carts);
-  // selecting cart
-  var NumOfCarts = sizeOf(carts);
-  var response;
-  if(parseInt(ID) <= NumOfCarts){
-      var cart = carts[cartID];
-      response = cart;
-  }else{
-    var err = {
-      "status":500,
+  if(carts.hasOwnProperty(cartID)) {
+    response = carts[cartID];
+  } else {
+    response = {
+      "error" : "404",
       "description":"CartID not found. CartID: "+cartID
     }
-    response = err;
   }
   return response;
 };
+
 var getUser = function(ID){
-  var userID = "user"+ID;
+  var userID = ID;
   var users = readFile(__dirname+"/data/json/","users.json");
   users = JSON.parse(users);
-  var NumOfUsers = sizeOf(users);
-  var response;
-
-  for(var user in users){
-    
-  }
-
-  if(parseInt(ID) <= NumOfUsers){
-    var user = users[userID];
-    response = user;
-  }else{
+  var response = null;
+  response = users[userID];
+  if(response == null) {
     var err = {
-      "status":500,
+      "error":500,
       "description":"UserID not found. UserID: "+userID
     }
     response = err;
   }
   return response;
 };
+
+var getLastKey = function(jsonObject){
+  var lastKey;
+  for(var key in jsonObject){
+    if(jsonObject.hasOwnProperty(key)){
+      lastKey = key;
+    }
+  }
+  return lastKey;
+};
+
 /* -------------------------- Server Config --------------------------*/
 var server =app.listen(8081, function(){
   var host = server.address().address;
