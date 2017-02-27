@@ -160,19 +160,58 @@ app.get('/checkout', function(req, res){
 
 app.get("/getGroup", function(req, res){
   var groupID = req.query.groupID;
+  console.log("/getGroup : "+JSON.stringify(req.query));
   var groups = readFile(__dirname+"/data/json/","groups.json");
   groups = JSON.parse(groups);
   var response = null;
   if(groups.hasOwnProperty(groupID)){
-    response = groups[groupID];
-    if(response){
-
+    var usersArray = groups[groupID];
+    response = {};
+    for(var i in usersArray){
+      console.log("USer : "+usersArray[i])
+      response[usersArray[i]]= i;
     }
   } else {
     response = {
-      "error": "600",
-      "description": "GroupID is not present. GroupID: "+groupID
+      "error": "660",
+      "description": "GroupID not found. GroupID : "+groupID
     }
+  }
+  res.end(JSON.stringify(response));
+});
+
+app.get("/addGroup", function(req, res){
+  console.log("/addGroup: "+JSON.stringify(req.query));
+
+  var groupID = req.query.groupID;
+  var userID = req.query.userID;
+  var groups = readFile(__dirname+"/data/json/", "groups.json");
+  groups = JSON.parse(groups);
+  var response = null;
+console.log("Ankita ke liye : "+groups.hasOwnProperty(groupID));
+  if(groups.hasOwnProperty(groupID)){
+    var groupUsers = groups[groupID];
+    if(groupUsers.indexOf(userID) > -1){
+      // User Already a member of group
+      response = {
+        "error": "440",
+        "description": "User "+userID+" is already a member of Group : "+groupID
+      }
+    } else {
+      // Add user
+      groupUsers.push(userID);
+      groups[groupID] = groupUsers;
+      console.log("User "+userID+" added to group "+groupID);
+      writeFile(__dirname+"/data/json/", "groups.json",groups);
+    }
+
+  } else {
+    // Group does not exist. Create a new group and add user
+    var groupUsers = [userID.toString()];
+    groups[groupID] = groupUsers;
+    console.log("New Group create, groupID: "+groupID+" with user "+userID);
+    console.log(JSON.stringify(groups));
+    writeFile(__dirname+"/data/json/", "groups.json",groups);
   }
   res.end(JSON.stringify(response));
 });
