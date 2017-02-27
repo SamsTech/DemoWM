@@ -1,21 +1,5 @@
 {
-  "group1":{
-    "cartId": "c1234",
-    "users":{ "u1": "user1",
-              "u2": "user2"
-            }
-  },
-  "group2":{
-    "cartId": "c1234",
-    "users":{ "u1": "user3",
-              "u2": "user2"
-            }
-  },
-  "group3":{
-    "cartId": "c1234",
-    "users":{ "u1": "user1",
-              "u2": "user2",
-              "u3": "user3"
-            }
-  },
+  "1283787817":[ "Akhil", "Guli"],
+  "9237326742":[ "Josh", "Lobo"],
+  "8462568257":[ "Ravi", "Jinzhi", "Charles"]
 }
