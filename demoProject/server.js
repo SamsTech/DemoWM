@@ -73,17 +73,24 @@ app.get('/addItem', function(req,res){
         var itemDetails = getItem(upc);
         // Check if Item is present. Cannot add if Item not in Items.json
         if(!itemDetails.hasOwnProperty("error")){
-          // TODO: Check if user has access to the cart.
-          var itemEntry = {
-            "quantity": quantity,
-            "name":itemDetails.name,
-            "price":itemDetails.price,
-            "addedBy": userID
-          };
-          cart[upc] = itemEntry;
-          carts[cartID] = cart;
-          writeFile(__dirname+"/data/json/","carts.json", carts);
-          response = cart;
+          // Check if user has access to the cart.
+          if(getGroup(cartID).hasOwnProperty(userID)){
+            var itemEntry = {
+              "quantity": quantity,
+              "name":itemDetails.name,
+              "price":itemDetails.price,
+              "addedBy": userID
+            };
+            cart[upc] = itemEntry;
+            carts[cartID] = cart;
+            writeFile(__dirname+"/data/json/","carts.json", carts);
+            response = cart;
+          } else {
+            response = {
+              "error": "330",
+              "description": "User "+userID+" not authorized to add to cartd : "+cartID
+            }
+          }
         } else {
           // ERROR Item not present
           response = itemDetails;
@@ -134,14 +141,22 @@ app.get('/checkout', function(req, res){
   var response = null;
   if(!cart.hasOwnProperty("error")){
     if(cart.status != "CheckedOut"){
-      //TODO: need to check if the user is in the same group as cart
-      cart.status = "CheckedOut";
-      var carts = readFile(__dirname+"/data/json/","carts.json");
-      carts = JSON.parse(carts);
-      carts[cartID] = cart;
-      response = true;
-      writeFile(__dirname+"/data/json/","carts.json", carts);
-      console.log("/Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
+      // Need to check if the user is in the same group as cart
+      if(getGroup(cartID).hasOwnProperty(userID)){
+        cart.status = "CheckedOut";
+        var carts = readFile(__dirname+"/data/json/","carts.json");
+        carts = JSON.parse(carts);
+        carts[cartID] = cart;
+        response = true;
+        writeFile(__dirname+"/data/json/","carts.json", carts);
+        console.log("/Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
+      } else {
+        response = {
+          "error": "330",
+          "description": "User "+userID+" not authorized to checkout cartd : "+cartID
+        }
+      }
+
     } else {
       response = {
         "error":"550",
@@ -159,24 +174,9 @@ app.get('/checkout', function(req, res){
 });
 
 app.get("/getGroup", function(req, res){
-  var groupID = req.query.groupID;
   console.log("/getGroup : "+JSON.stringify(req.query));
-  var groups = readFile(__dirname+"/data/json/","groups.json");
-  groups = JSON.parse(groups);
-  var response = null;
-  if(groups.hasOwnProperty(groupID)){
-    var usersArray = groups[groupID];
-    response = {};
-    for(var i in usersArray){
-      console.log("USer : "+usersArray[i])
-      response[usersArray[i]]= i;
-    }
-  } else {
-    response = {
-      "error": "660",
-      "description": "GroupID not found. GroupID : "+groupID
-    }
-  }
+  var groupID = req.query.groupID;
+  var response = getGroup(groupID);
   res.end(JSON.stringify(response));
 });
 
@@ -298,6 +298,25 @@ var getItem = function(upc){
   return response;
 }
 
+var getGroup = function(groupID){
+  var groups = readFile(__dirname+"/data/json/","groups.json");
+  groups = JSON.parse(groups);
+  var response = null;
+  if(groups.hasOwnProperty(groupID)){
+    var usersArray = groups[groupID];
+    response = {};
+    for(var i in usersArray){
+      console.log("USer : "+usersArray[i])
+      response[usersArray[i]]= i;
+    }
+  } else {
+    response = {
+      "error": "660",
+      "description": "GroupID not found. GroupID : "+groupID
+    }
+  }
+  return response;
+}
 /* -------------------------- Server Config --------------------------*/
 var server =app.listen(8081, function(){
   var host = server.address().address;
