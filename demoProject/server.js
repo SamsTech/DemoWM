@@ -77,8 +77,6 @@ app.get('/addItem', function(req,res){
           if(getGroup(cartID).hasOwnProperty(userID)){
             var itemEntry = {
               "quantity": quantity,
-              "name":itemDetails.name,
-              "price":itemDetails.price,
               "addedBy": userID
             };
             cart[upc] = itemEntry;
@@ -109,7 +107,7 @@ app.get('/addItem', function(req,res){
       };
     }
   } else {
-    // cartID not present. Create Empty cart with status "InProgress"
+    // cartID not present. Create cart with item and status "InProgress"
     cart = {
       "status": "InProgress",
       upc:{
@@ -188,7 +186,7 @@ app.get("/addGroup", function(req, res){
   var groups = readFile(__dirname+"/data/json/", "groups.json");
   groups = JSON.parse(groups);
   var response = null;
-console.log("Ankita ke liye : "+groups.hasOwnProperty(groupID));
+
   if(groups.hasOwnProperty(groupID)){
     var groupUsers = groups[groupID];
     if(groupUsers.indexOf(userID) > -1){
@@ -255,8 +253,28 @@ var getCart = function(ID){
   var carts = readFile(__dirname+"/data/json/","carts.json");
   carts = JSON.parse(carts);
   if(carts.hasOwnProperty(cartID)) {
-    response = carts[cartID];
+    var cart = carts[cartID];
+    var response = {};
+    // Loop through cart elememts and create response
+    for(var element in cart){
+      if(element == "status"){
+        response[element] = cart[element];
+      } else {
+        // Adding additional details for Items
+        var Items = readFile(__dirname+"/data/json/", "items.json");
+        Items = JSON.parse(Items);
 
+        var curItemDetails = cart[element];
+        var itemDetails = Items[element];
+
+        response[element] = {
+            "name": itemDetails["name"],
+            "price": itemDetails["price"],
+            "quantity": curItemDetails["quantity"],
+            "addedBy": curItemDetails["addedBy"]
+        }
+      }
+    }
   } else {
     response = {
       "error" : "400",
