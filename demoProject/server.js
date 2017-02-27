@@ -3,7 +3,7 @@ var app = express();
 var fs = require('fs');
 
 app.get('/index.html', function (req, res) {
-   res.sendFile( __dirname + "/" + "index.html" );
+  res.sendFile( __dirname + "/" + "index.html" );
 })
 
 // TODO: This function lists all the users
@@ -19,7 +19,6 @@ app.get('/getUser', function(req, res) {
   //response = JSON.parse(response);
   res.end(JSON.stringify(response));
 });
-
 
 // This function Adds new users
 app.get('/addUser', function(req, res) {
@@ -41,17 +40,16 @@ app.get('/addUser', function(req, res) {
     "lastname": lName,
     "password": pwd,
     "paymentcard": {
-        "nameoncard":nameOnCard,
-        "card":card,
-        "cardnumber":cardNumber,
-        "expdate":expDate,
-        "cvv":cvv
+      "nameoncard":nameOnCard,
+      "card":card,
+      "cardnumber":cardNumber,
+      "expdate":expDate,
+      "cvv":cvv
     }
   };
   data = addEntry("user", data, user);
   writeFile(__dirname+"/data/json/", "users.json", data);
 });
-
 
 // This function Add new Items to the specified cart
 app.get('/addItem', function(req,res){
@@ -72,14 +70,24 @@ app.get('/addItem', function(req,res){
     // check if item is present
     if(cart["status"] == "InProgress"){
       if(!cart.hasOwnProperty(upc)){
-        var itemEntry = {
-          "quantity": quantity,
-          "addedBy": userID
-        };
-        cart[upc] = itemEntry;
-        carts[cartID] = cart;
-        response = cart;
-        writeFile(__dirname+"/data/json/","carts.json", carts);
+        var itemDetails = getItem(upc);
+        // Check if Item is present. Cannot add if Item not in Items.json
+        if(!itemDetails.hasOwnProperty("error")){
+          // TODO: Check if user has access to the cart.
+          var itemEntry = {
+            "quantity": quantity,
+            "name":itemDetails.name,
+            "price":itemDetails.price,
+            "addedBy": userID
+          };
+          cart[upc] = itemEntry;
+          carts[cartID] = cart;
+          writeFile(__dirname+"/data/json/","carts.json", carts);
+          response = cart;
+        } else {
+          // ERROR Item not present
+          response = itemDetails;
+        }
       } else {
         response = {
           "error": "300",
@@ -118,14 +126,53 @@ app.get('/getCart', function(req, res){
 
 // This function is for checkout
 app.get('/checkout', function(req, res){
-  var cartID = "cart"+req.query.cartID;
-  var userID = "user"+req.query.userID;
-  var cartResponse = getCart(req.query.cartID);
-  response = {
-    "userID": userID,
-    // TODO: Add this statu to cart object
-    "staus": "checkedout",
-    "response": cartResponse
+  var cartID = req.query.cartID;
+  var userID = req.query.userID;
+  console.log("/checkout : "+JSON.stringify(req.query));
+
+  var cart = getCart(req.query.cartID);
+  var response = null;
+  if(!cart.hasOwnProperty("error")){
+    if(cart.status != "CheckedOut"){
+      //TODO: need to check if the user is in the same group as cart
+      cart.status = "CheckedOut";
+      var carts = readFile(__dirname+"/data/json/","carts.json");
+      carts = JSON.parse(carts);
+      carts[cartID] = cart;
+      response = true;
+      writeFile(__dirname+"/data/json/","carts.json", carts);
+      console.log("/Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
+    } else {
+      response = {
+        "error":"550",
+        "description": "Cart is already CheckedOut. CartID : "+cartID
+      }
+    }
+  }
+  else{
+    // CartID not found
+    response = cart;
+    console.log("/Checkout: ERROR - "+response.description);
+  }
+
+  res.end(JSON.stringify(response));
+});
+
+app.get("/getGroup", function(req, res){
+  var groupID = req.query.groupID;
+  var groups = readFile(__dirname+"/data/json/","groups.json");
+  groups = JSON.parse(groups);
+  var response = null;
+  if(groups.hasOwnProperty(groupID)){
+    response = groups[groupID];
+    if(response){
+
+    }
+  } else {
+    response = {
+      "error": "600",
+      "description": "GroupID is not present. GroupID: "+groupID
+    }
   }
   res.end(JSON.stringify(response));
 });
@@ -140,72 +187,6 @@ app.get('/deleteUser', function(req, res){
   writeFile(__dirname+"/data/json/","users.json", users);
 });
 
-// Ankita's services - code
-
-//function to check the groups and their users
-app.get('/listGroups', function (req, res) {
-    fs.readFile( __dirname + "/" + "../data/json/groups.json", 'utf8', function (err, data){
-       console.log( data );
-       res.end( data );
-   });
-})
-
-//Function to add group
-app.get('/AddGroup', function (req, res) {
-  var QRString = "group"+req.query.QRString;
-  console.log("QRString",QRString);
-  var user = "user"+req.query.userID;
-  var groups=readFile(__dirname+"/data/json/","groups.json");
-  var carts =readFile(__dirname+"/data/json/","carts.json");
-  groups = JSON.parse( groups );
-  carts = JSON.parse( carts );
-  var NumOfGroups = sizeOf(groups);
-  var NumOfCarts = sizeOf(carts);
-
-  if(groups[QRString] == null)
-  {
-     var newgroup = {
-        "cartId":"cart"+(NumOfCarts+1),
-        "users":{
-           "u1" : user
-          }
-      }
-      groups[QRString] = newgroup;
-      res.end( JSON.stringify(groups,null,'\t'));
-      console.log("Modified: "+JSON.stringify(groups));
-      writeFile(__dirname+"/data/json/","groups.json", groups);
-      console.log("Group has been added");
-  }
-  else {
-    var group = groups[QRString];
-    var groupusers = group["users"];
-    NumOfgroupUsers = sizeOf(groupusers)
-    groupusers["u"+(NumOfgroupUsers + 1)] = user;
-    group["users"]= groupusers;
-    groups[QRString] = group;
-    res.end( JSON.stringify(groups,null,'\t'));
-    console.log("Modified: "+JSON.stringify(groups));
-    writeFile(__dirname+"/data/json/","groups.json", groups);
-    console.log("New user has been added to already existing group");
-  }
-});
-
-
-
-//Function to get the group
-app.get('/getGroup', function(req, res){
-  var cID  = req.query.cartID;
-  var cart = getCart(cID);
-  var status = cart["status"];
-  response = {
-    "cartID": "cart"+cID,
-    "item list": cart,
-    "status": status
-  }
-  res.end(JSON.stringify(response,null,'\t'));
-
-});
-
 /* -------------------------- Utility function --------------------------*/
 var readFile = function(dir, fileName){
   console.log("Reading File : "+dir+fileName);
@@ -214,19 +195,19 @@ var readFile = function(dir, fileName){
 };
 var writeFile = function(dir, fileName, data){
   var result = fs.writeFile(dir+fileName,
-                  JSON.stringify(data, null,'\t'), function(err){
-                    if(err){
-                      return console.log(err);
-                    }
-                    console.log("File Write Complete: Updated - "+fileName);
-              });
+      JSON.stringify(data, null,'\t'), function(err){
+        if(err){
+          return console.log(err);
+        }
+        console.log("File Write Complete: Updated - "+fileName);
+      });
 };
 var sizeOf = function(jsonObj){ return Object.keys(jsonObj).length };
 var isPresent = function(list, element){
   if(list.hasOwnProperty(element))
-      return true;
+    return true;
   else
-      return false;
+    return false;
 }
 
 var getCart = function(ID){
@@ -236,9 +217,10 @@ var getCart = function(ID){
   carts = JSON.parse(carts);
   if(carts.hasOwnProperty(cartID)) {
     response = carts[cartID];
+
   } else {
     response = {
-      "error" : "404",
+      "error" : "400",
       "description":"CartID not found. CartID: "+cartID
     }
   }
@@ -261,15 +243,21 @@ var getUser = function(ID){
   return response;
 };
 
-var getLastKey = function(jsonObject){
-  var lastKey;
-  for(var key in jsonObject){
-    if(jsonObject.hasOwnProperty(key)){
-      lastKey = key;
+var getItem = function(upc){
+  var response = null;
+  var Items = readFile(__dirname+"/data/json/", "items.json");
+  Items = JSON.parse(Items);
+
+  if(Items.hasOwnProperty(upc)){
+    response = Items[upc];
+  } else {
+    response = {
+      "error": "500",
+      "description": "Item not found. UPC : "+upc
     }
   }
-  return lastKey;
-};
+  return response;
+}
 
 /* -------------------------- Server Config --------------------------*/
 var server =app.listen(8081, function(){
