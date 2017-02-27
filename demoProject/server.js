@@ -132,13 +132,20 @@ app.get('/checkout', function(req, res){
   var cart = getCart(req.query.cartID);
   var response = null;
   if(!cart.hasOwnProperty("error")){
-    cart.status = "CheckedOut";
-    var carts = readFile(__dirname+"/data/json/","carts.json");
-    carts = JSON.parse(carts);
-    carts[cartID] = cart;
-    writeFile(__dirname+"/data/json/","carts.json", carts);
-    console.log("/Checkout: CartID "+cartID+" CHECKED OUT");
-    reponse = true;
+    if(cart.status != "CheckedOut"){
+      cart.status = "CheckedOut";
+      var carts = readFile(__dirname+"/data/json/","carts.json");
+      carts = JSON.parse(carts);
+      carts[cartID] = cart;
+      response = true;
+      writeFile(__dirname+"/data/json/","carts.json", carts);
+      console.log("/Checkout: CartID "+cartID+" CHECKED OUT");
+    } else {
+      response = {
+        "error":"550",
+        "description": "Cart is already CheckedOut. CartID : "+cartID
+      }
+    }
   }
   else{
     // CartID not found
