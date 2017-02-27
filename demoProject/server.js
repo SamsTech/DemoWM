@@ -70,14 +70,23 @@ app.get('/addItem', function(req,res){
     // check if item is present
     if(cart["status"] == "InProgress"){
       if(!cart.hasOwnProperty(upc)){
-        var itemEntry = {
-          "quantity": quantity,
-          "addedBy": userID
-        };
-        cart[upc] = itemEntry;
-        carts[cartID] = cart;
-        response = cart;
-        writeFile(__dirname+"/data/json/","carts.json", carts);
+        var itemDetails = getItem(upc);
+        if(!itemDetails.hasOwnProperty("error")){
+
+          var itemEntry = {
+            "quantity": quantity,
+            "name":itemDetails.name,
+            "price":itemDetails.price,
+            "addedBy": userID
+          };
+          cart[upc] = itemEntry;
+          carts[cartID] = cart;
+          writeFile(__dirname+"/data/json/","carts.json", carts);
+          response = cart;
+        } else {
+          // ERROR Item not present
+          response = itemDetails;
+        }
       } else {
         response = {
           "error": "300",
@@ -116,14 +125,45 @@ app.get('/getCart', function(req, res){
 
 // This function is for checkout
 app.get('/checkout', function(req, res){
-  var cartID = "cart"+req.query.cartID;
-  var userID = "user"+req.query.userID;
-  var cartResponse = getCart(req.query.cartID);
-  response = {
-    "userID": userID,
-    // TODO: Add this statu to cart object
-    "staus": "checkedout",
-    "response": cartResponse
+  var cartID = req.query.cartID;
+  var userID = req.query.userID;
+  console.log("/checkout : "+JSON.stringify(req.query));
+
+  var cart = getCart(req.query.cartID);
+  var response = null;
+  if(!cart.hasOwnProperty("error")){
+    cart.status = "CheckedOut";
+    var carts = readFile(__dirname+"/data/json/","carts.json");
+    carts = JSON.parse(carts);
+    carts[cartID] = cart;
+    writeFile(__dirname+"/data/json/","carts.json", carts);
+    console.log("/Checkout: CartID "+cartID+" CHECKED OUT");
+    reponse = true;
+  }
+  else{
+    // CartID not found
+    response = cart;
+    console.log("/Checkout: ERROR - "+response.description);
+  }
+
+  res.end(JSON.stringify(response));
+});
+
+app.get("/getGroup", function(req, res){
+  var groupID = req.query.groupID;
+  var groups = readFile(__dirname+"/data/json/","groups.json");
+  groups = JSON.parse(groups);
+  var response = null;
+  if(groups.hasOwnProperty(groupID)){
+    response = groups[groupID];
+    if(response){
+
+    }
+  } else {
+    response = {
+      "error": "600",
+      "description": "GroupID is not present. GroupID: "+groupID
+    }
   }
   res.end(JSON.stringify(response));
 });
@@ -168,9 +208,10 @@ var getCart = function(ID){
   carts = JSON.parse(carts);
   if(carts.hasOwnProperty(cartID)) {
     response = carts[cartID];
+    
   } else {
     response = {
-      "error" : "404",
+      "error" : "400",
       "description":"CartID not found. CartID: "+cartID
     }
   }
@@ -193,15 +234,21 @@ var getUser = function(ID){
   return response;
 };
 
-var getLastKey = function(jsonObject){
-  var lastKey;
-  for(var key in jsonObject){
-    if(jsonObject.hasOwnProperty(key)){
-      lastKey = key;
+var getItem = function(upc){
+  var response = null;
+  var Items = readFile(__dirname+"/data/json/", "items.json");
+  Items = JSON.parse(Items);
+
+  if(Items.hasOwnProperty(upc)){
+    response = Items[upc];
+  } else {
+    response = {
+      "error": "500",
+      "description": "Item not found. UPC : "+upc
     }
   }
-  return lastKey;
-};
+  return response;
+}
 
 /* -------------------------- Server Config --------------------------*/
 var server =app.listen(8081, function(){
