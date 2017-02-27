@@ -23,20 +23,6 @@ fs.readFile(__dirname+"/data/json/"+"users.json", 'utf8',
 
 });
 
-// This function Adds new users
-/*app.get('/addUser', function(req, res) {
-  var data = readFile(__dirname+"/data/json/", "users.json");
-  console.log("Reading the File ************************");
-  console.log(data.toString());
-  var user = {
-    firstname:
-  };
-  data = JSON.parse(data);
-  data["user6"]=user["user6"];
-  console.log("Writing the File ************************");
-  writeFile(__dirname+"/data/json/", "users.json", data);
-});*/
-
 // This function Add new Items to the specified cart
 app.get('/addItem', function(req,res){
   var cartID = "cart"+req.query.cartID;
