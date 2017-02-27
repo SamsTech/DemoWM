@@ -1,0 +1,19 @@
+{
+"name": "DemoWM",
+"version": "1.0.0",
+"description": "Mock service",
+"main": "server.js",
+"scripts": {
+"test": "test"
+},
+"repository": {
+"type": "git",
+"url": "git+https://github.com/akhileshwarguli/DemoWM.git"
+},
+"keywords": [
+"node",
+"service"
+],
+"author": "Akhil Guli",
+"license": "ISC"
+}
