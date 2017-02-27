@@ -1,0 +1,32 @@
+{
+  "item1" :{
+    "upc": 123456789,
+    "name": "Test Item 1",
+    "price": "10.00",
+    "currency": "USD"
+  },
+  "item2" :{
+    "upc": 12356789,
+    "name": "Test Item 2",
+    "price": "15.00",
+    "currency": "USD"
+  },
+  "item3" :{
+    "upc": 12345789,
+    "name": "Test Item 3",
+    "price": "30.00",
+    "currency": "USD"
+  },
+  "item4" :{
+    "upc": 12345678,
+    "name": "Test Item 4",
+    "price": "50.00",
+    "currency": "USD"
+  },
+  "item5" :{
+    "upc": 13456789,
+    "name": "Test Item 5",
+    "price": "100.00",
+    "currency": "USD"
+  }
+}
