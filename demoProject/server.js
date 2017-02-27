@@ -7,21 +7,51 @@ app.get('/index.html', function (req, res) {
 })
 
 // TODO: This function lists all the users
-app.get('/listUser', function(req, rres){});
+app.get('/listUser', function(req, res){
+  var response = readFile(__dirname+"/data/json/","users.json");
+  response = JSON.parse(response);
+  res.end(JSON.stringify(response));
+});
 
 // This function returns User Information
 app.get('/getUser', function(req, res) {
-fs.readFile(__dirname+"/data/json/"+"users.json", 'utf8',
-              function(err,data){
-                data = JSON.parse(data);
-                var user = data["user"+req.query.userID];
-                console.log("/getUser?userID="+req.query.userID);
-                console.log(JSON.stringify(user));
-                //var board = document.getElementByID("txtBoard");
-                res.end(JSON.stringify(user));
-              });
-
+  var response = getUser(req.query.userID);
+  //response = JSON.parse(response);
+  res.end(JSON.stringify(response));
 });
+
+
+// This function Adds new users
+app.get('/addUser', function(req, res) {
+  var fName = req.query.first_name;
+  var lName = req.query.last_name;
+  var nameOnCard = req.query.name_on_card;
+  var card = req.query.card_type;
+  var cardNumber = req.query.card_number;
+  var expDate = req.query.exp_date;
+  var cvv = req.query.cvv;
+  var pwd = req.query.pwd;
+
+  var data = readFile(__dirname+"/data/json/", "users.json");
+  //console.log(data.toString());
+  data = JSON.parse(data);
+  NumOfUsers = sizeOf(data);
+  user = {
+    "firstname": fName,
+    "lastname": lName,
+    "password": pwd,
+    "paymentcard": {
+        "nameoncard":nameOnCard,
+        "card":card,
+        "cardnumber":cardNumber,
+        "expdate":expDate,
+        "cvv":cvv
+    }
+  };
+  data["user"+(NumOfUsers+1)]=user;
+  writeFile(__dirname+"/data/json/", "users.json", data);
+});
+
 
 // This function Add new Items to the specified cart
 app.get('/addItem', function(req,res){
@@ -68,6 +98,7 @@ app.get('/checkout', function(req, res){
   }
   res.end(JSON.stringify(response));
 });
+
 
 // Ankita's services - code
 
@@ -135,6 +166,8 @@ app.get('/getGroup', function(req, res){
 
 });
 
+
+
 /* -------------------------- Utility function --------------------------*/
 var readFile = function(dir, fileName){
   var data = fs.readFileSync(dir+fileName);
@@ -161,11 +194,33 @@ var getCart = function(ID){
   if(parseInt(ID) <= NumOfCarts){
       var cart = carts[cartID];
       response = cart;
-  }
-  else{
+  }else{
     var err = {
       "status":500,
       "description":"CartID not found. CartID: "+cartID
+    }
+    response = err;
+  }
+  return response;
+};
+var getUser = function(ID){
+  var userID = "user"+ID;
+  var users = readFile(__dirname+"/data/json/","users.json");
+  users = JSON.parse(users);
+  var NumOfUsers = sizeOf(users);
+  var response;
+
+  for(var user in users){
+    
+  }
+
+  if(parseInt(ID) <= NumOfUsers){
+    var user = users[userID];
+    response = user;
+  }else{
+    var err = {
+      "status":500,
+      "description":"UserID not found. UserID: "+userID
     }
     response = err;
   }
