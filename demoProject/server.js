@@ -20,6 +20,7 @@ app.get('/getUser', function(req, res) {
   res.end(JSON.stringify(response));
 });
 
+
 // This function Adds new users
 app.get('/addUser', function(req, res) {
   var fName = req.query.first_name;
@@ -50,6 +51,7 @@ app.get('/addUser', function(req, res) {
   data["user"+(NumOfUsers+1)]=user;
   writeFile(__dirname+"/data/json/", "users.json", data);
 });
+
 
 // This function Add new Items to the specified cart
 app.get('/addItem', function(req,res){
@@ -96,6 +98,75 @@ app.get('/checkout', function(req, res){
   }
   res.end(JSON.stringify(response));
 });
+
+
+// Ankita's services - code
+
+//function to check the groups and their users
+app.get('/listGroups', function (req, res) {
+    fs.readFile( __dirname + "/" + "../data/json/groups.json", 'utf8', function (err, data){
+       console.log( data );
+       res.end( data );
+   });
+})
+
+//Function to add group
+app.get('/AddGroup', function (req, res) {
+  var QRString = "group"+req.query.QRString;
+  console.log("QRString",QRString);
+  var user = "user"+req.query.userID;
+  var groups=readFile(__dirname+"/data/json/","groups.json");
+  var carts =readFile(__dirname+"/data/json/","carts.json");
+  groups = JSON.parse( groups );
+  carts = JSON.parse( carts );
+  var NumOfGroups = sizeOf(groups);
+  var NumOfCarts = sizeOf(carts);
+
+  if(groups[QRString] == null)
+  {
+     var newgroup = {
+        "cartId":"cart"+(NumOfCarts+1),
+        "users":{
+           "u1" : user
+          }
+      }
+      groups[QRString] = newgroup;
+      res.end( JSON.stringify(groups,null,'\t'));
+      console.log("Modified: "+JSON.stringify(groups));
+      writeFile(__dirname+"/data/json/","groups.json", groups);
+      console.log("Group has been added");
+  }
+  else {
+    var group = groups[QRString];
+    var groupusers = group["users"];
+    NumOfgroupUsers = sizeOf(groupusers)
+    groupusers["u"+(NumOfgroupUsers + 1)] = user;
+    group["users"]= groupusers;
+    groups[QRString] = group;
+    res.end( JSON.stringify(groups,null,'\t'));
+    console.log("Modified: "+JSON.stringify(groups));
+    writeFile(__dirname+"/data/json/","groups.json", groups);
+    console.log("New user has been added to already existing group");
+  }
+});
+
+
+
+//Function to get the group
+app.get('/getGroup', function(req, res){
+  var cID  = req.query.cartID;
+  var cart = getCart(cID);
+  var status = cart["status"];
+  response = {
+    "cartID": "cart"+cID,
+    "item list": cart,
+    "status": status
+  }
+  res.end(JSON.stringify(response,null,'\t'));
+
+});
+
+
 
 /* -------------------------- Utility function --------------------------*/
 var readFile = function(dir, fileName){

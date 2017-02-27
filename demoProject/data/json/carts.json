@@ -1,5 +1,6 @@
 {
 	"cart1": {
+		"status":"checked-out",
 		"i1": {
 			"id": "item1",
 			"quantity": "2",
@@ -34,9 +35,25 @@
 			"id": "item4",
 			"quantity": "24",
 			"addedBy": "user4"
+		},
+		"i8": {
+			"id": "item12314141",
+			"quantity": "4",
+			"addedBy": "useru2"
+		},
+		"i9": {
+			"id": "item12314141",
+			"quantity": "4",
+			"addedBy": "useru2"
+		},
+		"i10": {
+			"id": "item12314141",
+			"quantity": "4",
+			"addedBy": "useru2"
 		}
 	},
 	"cart2": {
+		"status":"in-progress",
 		"i1": {
 			"id": "item1",
 			"quantity": "2",
@@ -56,9 +73,30 @@
 			"id": "item2",
 			"quantity": "100",
 			"addedBy": "user4"
+		},
+		"i5": {
+			"id": "item3",
+			"quantity": "56",
+			"addedBy": "user2"
+		},
+		"i6": {
+			"id": "item3",
+			"quantity": "56",
+			"addedBy": "user2"
+		},
+		"i7": {
+			"id": "item3",
+			"quantity": "56",
+			"addedBy": "user2"
+		},
+		"i8": {
+			"id": "item3",
+			"quantity": "56",
+			"addedBy": "user2"
 		}
 	},
 	"cart3": {
+		"status":"checking-out",
 		"i1": {
 			"id": "item1",
 			"quantity": "2",
