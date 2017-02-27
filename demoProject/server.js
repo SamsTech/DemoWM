@@ -3,7 +3,7 @@ var app = express();
 var fs = require('fs');
 
 app.get('/index.html', function (req, res) {
-   res.sendFile( __dirname + "/" + "index.html" );
+  res.sendFile( __dirname + "/" + "index.html" );
 })
 
 // TODO: This function lists all the users
@@ -40,11 +40,11 @@ app.get('/addUser', function(req, res) {
     "lastname": lName,
     "password": pwd,
     "paymentcard": {
-        "nameoncard":nameOnCard,
-        "card":card,
-        "cardnumber":cardNumber,
-        "expdate":expDate,
-        "cvv":cvv
+      "nameoncard":nameOnCard,
+      "card":card,
+      "cardnumber":cardNumber,
+      "expdate":expDate,
+      "cvv":cvv
     }
   };
   data = addEntry("user", data, user);
@@ -71,8 +71,9 @@ app.get('/addItem', function(req,res){
     if(cart["status"] == "InProgress"){
       if(!cart.hasOwnProperty(upc)){
         var itemDetails = getItem(upc);
+        // Check if Item is present. Cannot add if Item not in Items.json
         if(!itemDetails.hasOwnProperty("error")){
-
+          // TODO: Check if user has access to the cart.
           var itemEntry = {
             "quantity": quantity,
             "name":itemDetails.name,
@@ -133,13 +134,14 @@ app.get('/checkout', function(req, res){
   var response = null;
   if(!cart.hasOwnProperty("error")){
     if(cart.status != "CheckedOut"){
+      //TODO: need to check if the user is in the same group as cart
       cart.status = "CheckedOut";
       var carts = readFile(__dirname+"/data/json/","carts.json");
       carts = JSON.parse(carts);
       carts[cartID] = cart;
       response = true;
       writeFile(__dirname+"/data/json/","carts.json", carts);
-      console.log("/Checkout: CartID "+cartID+" CHECKED OUT");
+      console.log("/Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
     } else {
       response = {
         "error":"550",
@@ -193,19 +195,19 @@ var readFile = function(dir, fileName){
 };
 var writeFile = function(dir, fileName, data){
   var result = fs.writeFile(dir+fileName,
-                  JSON.stringify(data, null,'\t'), function(err){
-                    if(err){
-                      return console.log(err);
-                    }
-                    console.log("File Write Complete: Updated - "+fileName);
-              });
+      JSON.stringify(data, null,'\t'), function(err){
+        if(err){
+          return console.log(err);
+        }
+        console.log("File Write Complete: Updated - "+fileName);
+      });
 };
 var sizeOf = function(jsonObj){ return Object.keys(jsonObj).length };
 var isPresent = function(list, element){
   if(list.hasOwnProperty(element))
-      return true;
+    return true;
   else
-      return false;
+    return false;
 }
 
 var getCart = function(ID){
@@ -215,7 +217,7 @@ var getCart = function(ID){
   carts = JSON.parse(carts);
   if(carts.hasOwnProperty(cartID)) {
     response = carts[cartID];
-    
+
   } else {
     response = {
       "error" : "400",
