@@ -78,45 +78,46 @@ app.get('/addItem', function(req,res){
   var cart = getOnlyCart(cartID);
 
   if(!cart.hasOwnProperty("error")){
-    // check if item is present
-    if(cart["status"] == "InProgress"){
-      if(!cart.hasOwnProperty(upc)){
-        var itemDetails = getItem(upc);
-        // Check if Item is present. Cannot add if Item not in Items.json
-        if(!itemDetails.hasOwnProperty("error")){
-          // Check if user has access to the cart.
-          if(getGroup(cartID).hasOwnProperty(userID)){
-            var itemEntry = {
-              "quantity": quantity,
-              "addedBy": userID
-            };
-            cart[upc] = itemEntry;
-            carts[cartID] = cart;
-            writeFile(__dirname+"/data/json/","carts.json", carts);
-            response = cart;
-          } else {
-            response = {
+      // check if user has access to cart
+      if(getGroup(cartID).hasOwnProperty(userID)){
+          // check cart status
+          if(cart["status"] == "InProgress"){
+              if(!cart.hasOwnProperty(upc)){
+                  var itemDetails = getItem(upc);
+                  // Check if Item is present. Cannot add if Item not in Items.json
+                  if(!itemDetails.hasOwnProperty("error")){
+                          var itemEntry = {
+                              "quantity": quantity,
+                              "addedBy": userID
+                          };
+                          cart[upc] = itemEntry;
+                          carts[cartID] = cart;
+                          writeFile(__dirname+"/data/json/","carts.json", carts);
+                          response = cart;
+                  } else {
+                      // ERROR Item not present
+                      response = itemDetails;
+                  }
+              } else {
+                  response = {
+                      "error": "300",
+                      "description": "Item is already present in cart. UPC :"+upc+" cartID : "+cartID
+                  }
+              }
+          }
+          else {
+              response = {
+                  "error": "200",
+                  "description":"Cart Status is not In Progress"
+              };
+          }
+
+      } else {
+          response = {
               "error": "330",
               "description": "User "+userID+" not authorized to add to cartd : "+cartID
-            }
           }
-        } else {
-          // ERROR Item not present
-          response = itemDetails;
-        }
-      } else {
-        response = {
-          "error": "300",
-          "description": "Item is already present in cart. UPC :"+upc+" cartID : "+cartID
-        }
       }
-    }
-    else {
-      response = {
-        "error": "200",
-        "description":"Cart Status is not In Progress"
-      };
-    }
   } else {
       var upcEntry = {
           "quantity": quantity,
