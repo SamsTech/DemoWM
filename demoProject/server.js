@@ -29,26 +29,37 @@ app.get('/addUser', function(req, res) {
   var cardNumber = req.query.card_number;
   var expDate = req.query.exp_date;
   var cvv = req.query.cvv;
+    var userID = req.query.userID;
   var pwd = req.query.pwd;
 
-  var data = readFile(__dirname+"/data/json/", "users.json");
-  //console.log(data.toString());
-  data = JSON.parse(data);
-  //NumOfUsers = sizeOf(data);
-  user = {
-    "firstname": fName,
-    "lastname": lName,
-    "password": pwd,
-    "paymentcard": {
-      "nameoncard":nameOnCard,
-      "card":card,
-      "cardnumber":cardNumber,
-      "expdate":expDate,
-      "cvv":cvv
+  var users = readFile(__dirname+"/data/json/", "users.json");
+    users = JSON.parse(users);
+
+    var response = null;
+    if(users.hasOwnProperty(userID)){
+        user = {
+            "firstname": fName,
+            "lastname": lName,
+            "password": pwd,
+            "paymentcard": {
+                "nameoncard":nameOnCard,
+                "card":card,
+                "cardnumber":cardNumber,
+                "expdate":expDate,
+                "cvv":cvv
+            }
+        };
+        users[userID]=user;
+        response = true;
+        writeFile(__dirname+"/data/json/", "users.json", users);
+    } else {
+        response = {
+            "error": "110",
+            "description": "USerID: "+userID+" already present."
+        }
     }
-  };
-  data = addEntry("user", data, user);
-  writeFile(__dirname+"/data/json/", "users.json", data);
+
+    res.end(JSON.stringify(response));
 });
 
 // This function Add new Items to the specified cart
@@ -64,7 +75,7 @@ app.get('/addItem', function(req,res){
   var carts=readFile(__dirname+"/data/json/","carts.json");
   carts = JSON.parse(carts);
 
-  var cart = getCart(cartID);
+  var cart = getOnlyCart(cartID);
 
   if(!cart.hasOwnProperty("error")){
     // check if item is present
@@ -107,20 +118,66 @@ app.get('/addItem', function(req,res){
       };
     }
   } else {
+      var upcEntry = {
+          "quantity": quantity,
+          "addedBy": userID
+      };
     // cartID not present. Create cart with item and status "InProgress"
     cart = {
-      "status": "InProgress",
-      upc:{
-        "quantity": quantity,
-        "addedBy": userID
-      }
-    }
+      "status": "InProgress"
+    };
+      cart[upc] = upcEntry;
     carts[cartID] = cart;
     response = cart;
     writeFile(__dirname+"/data/json/","carts.json", carts);
   }
 
   res.end(JSON.stringify(response));
+});
+
+// This function is user to delete Item from given cart
+app.get('/deleteItem', function(req, res){
+    console.log("/deleteItem : "+JSON.stringify(req.query));
+
+    var cartID = req.query.cartID;
+    var upc = req.query.upc;
+    var userID = req.query.userID;
+    var response;
+    var carts = readFile(__dirname+"/data/json/", "carts.json");
+    carts = JSON.parse(carts);
+    var cart = getOnlyCart(cartID);
+    var itemDetails = getItem(upc);
+    var curGroup = getGroup(cartID);
+
+    if(!itemDetails.hasOwnProperty("error")){ // Check for valid item
+        if(!cart.hasOwnProperty("error")){ // Check for valid cart
+            if(curGroup.hasOwnProperty(userID) && curGroup[userID] == "OWNER"){ // Check if user is authorized
+                if(cart.hasOwnProperty(upc)){ // Check if cart has the item
+                    // delete the item from cart
+                    delete cart[upc];
+                    console.log("Deleted Item: "+upc+" from cart: "+cartID+" by User:"+userID);
+                    carts[cartID] = cart;
+                    writeFile(__dirname+"/data/json/","carts.json",carts);
+                } else {
+                    response = {
+                        "error" : "220",
+                        "description": "Item : "+upc+" not found in cart: "+cartID
+                    }
+                }
+            } else {
+                response = {
+                    "error" : "210",
+                    "description": "User: "+userID+" not authorized to cart: "+cartID
+                }
+            }
+        } else {
+            response = cart;
+        }
+    } else {
+        response = itemDetails;
+    }
+
+    res.end(JSON.stringify(response));
 });
 
 // This funciton is to get a cart
@@ -135,12 +192,12 @@ app.get('/checkout', function(req, res){
   var userID = req.query.userID;
   console.log("/checkout : "+JSON.stringify(req.query));
 
-  var cart = getCart(req.query.cartID);
+  var cart = getOnlyCart(req.query.cartID);
   var response = null;
   if(!cart.hasOwnProperty("error")){
-    if(cart.status != "CheckedOut"){
-      // Need to check if the user is in the same group as cart
       if(getGroup(cartID).hasOwnProperty(userID)){
+      // Need to check if the user is in the same group as cart
+      if(cart.status != "CheckedOut"){
         cart.status = "CheckedOut";
         var carts = readFile(__dirname+"/data/json/","carts.json");
         carts = JSON.parse(carts);
@@ -149,17 +206,17 @@ app.get('/checkout', function(req, res){
         writeFile(__dirname+"/data/json/","carts.json", carts);
         console.log("/Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
       } else {
-        response = {
-          "error": "330",
-          "description": "User "+userID+" not authorized to checkout cartd : "+cartID
-        }
+          response = {
+              "error":"550",
+              "description": "Cart is already CheckedOut. CartID : "+cartID
+          }
       }
 
     } else {
-      response = {
-        "error":"550",
-        "description": "Cart is already CheckedOut. CartID : "+cartID
-      }
+          response = {
+              "error": "330",
+              "description": "User "+userID+" not authorized to checkout cartd : "+cartID
+          }
     }
   }
   else{
@@ -189,7 +246,7 @@ app.get("/addGroup", function(req, res){
 
   if(groups.hasOwnProperty(groupID)){
     var groupUsers = groups[groupID];
-    if(groupUsers.indexOf(userID) > -1){
+    if(groupUsers.hasOwnProperty(userID)){
       // User Already a member of group
       response = {
         "error": "440",
@@ -197,7 +254,7 @@ app.get("/addGroup", function(req, res){
       }
     } else {
       // Add user
-      groupUsers.push(userID);
+      groupUsers[userID] = "USER";
       groups[groupID] = groupUsers;
       console.log("User "+userID+" added to group "+groupID);
       writeFile(__dirname+"/data/json/", "groups.json",groups);
@@ -205,9 +262,10 @@ app.get("/addGroup", function(req, res){
 
   } else {
     // Group does not exist. Create a new group and add user
-    var groupUsers = [userID.toString()];
+    var groupUsers={};
+      groupUsers[userID] = "OWNER";
     groups[groupID] = groupUsers;
-    console.log("New Group create, groupID: "+groupID+" with user "+userID);
+    console.log("New Group create, groupID: "+groupID+" with user "+userID+" as OWNER");
     console.log(JSON.stringify(groups));
     writeFile(__dirname+"/data/json/", "groups.json",groups);
   }
@@ -240,48 +298,60 @@ var writeFile = function(dir, fileName, data){
       });
 };
 var sizeOf = function(jsonObj){ return Object.keys(jsonObj).length };
-var isPresent = function(list, element){
-  if(list.hasOwnProperty(element))
-    return true;
-  else
-    return false;
-}
 
 var getCart = function(ID){
-  var cartID = ID;
-  var response = null;
-  var carts = readFile(__dirname+"/data/json/","carts.json");
-  carts = JSON.parse(carts);
-  if(carts.hasOwnProperty(cartID)) {
-    var cart = carts[cartID];
-    var response = {};
-    // Loop through cart elememts and create response
-    for(var element in cart){
-      if(element == "status"){
-        response[element] = cart[element];
-      } else {
-        // Adding additional details for Items
-        var Items = readFile(__dirname+"/data/json/", "items.json");
-        Items = JSON.parse(Items);
+    var cartID = ID;
+    var response = null;
+    var carts = readFile(__dirname+"/data/json/","carts.json");
+    carts = JSON.parse(carts);
+    if(carts.hasOwnProperty(cartID)) {
+        var cart = carts[cartID];
+        var response = {};
+        // Loop through cart elememts and create response
+        for(var element in cart){
+            if(element == "status"){
+                response[element] = cart[element];
+            } else {
+                // Adding additional details for Items
+                var Items = readFile(__dirname+"/data/json/", "items.json");
+                Items = JSON.parse(Items);
 
-        var curItemDetails = cart[element];
-        var itemDetails = Items[element];
+                var curItemDetails = cart[element];
+                var itemDetails = Items[element];
 
-        response[element] = {
-            "name": itemDetails["name"],
-            "price": itemDetails["price"],
-            "quantity": curItemDetails["quantity"],
-            "addedBy": curItemDetails["addedBy"]
+                response[element] = {
+                    "name": itemDetails["name"],
+                    "price": itemDetails["price"],
+                    "quantity": curItemDetails["quantity"],
+                    "addedBy": curItemDetails["addedBy"]
+                }
+            }
         }
-      }
+    } else {
+        response = {
+            "error" : "400",
+            "description":"CartID not found. CartID: "+cartID
+        }
     }
-  } else {
-    response = {
-      "error" : "400",
-      "description":"CartID not found. CartID: "+cartID
+    return response;
+};
+
+var getOnlyCart = function(ID){
+    var cartID = ID;
+    var response = null;
+    var carts = readFile(__dirname+"/data/json/","carts.json");
+    carts = JSON.parse(carts);
+    if(carts.hasOwnProperty(cartID)) {
+        var cart = carts[cartID];
+        var response = cart;
+
+    } else {
+        response = {
+            "error" : "400",
+            "description":"CartID not found. CartID: "+cartID
+        }
     }
-  }
-  return response;
+    return response;
 };
 
 var getUser = function(ID){
@@ -321,12 +391,7 @@ var getGroup = function(groupID){
   groups = JSON.parse(groups);
   var response = null;
   if(groups.hasOwnProperty(groupID)){
-    var usersArray = groups[groupID];
-    response = {};
-    for(var i in usersArray){
-      console.log("USer : "+usersArray[i])
-      response[usersArray[i]]= i;
-    }
+    response = groups[groupID];
   } else {
     response = {
       "error": "660",
