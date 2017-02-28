@@ -3,7 +3,7 @@ var app = express();
 var fs = require('fs');
 
 app.get('/index.html', function (req, res) {
-  res.sendFile( __dirname + "/" + "index.html" );
+   res.sendFile( __dirname + "/" + "index.html" );
 })
 
 // TODO: This function lists all the users
@@ -20,6 +20,7 @@ app.get('/getUser', function(req, res) {
   res.end(JSON.stringify(response));
 });
 
+
 // This function Adds new users
 app.get('/addUser', function(req, res) {
   var fName = req.query.first_name;
@@ -29,40 +30,277 @@ app.get('/addUser', function(req, res) {
   var cardNumber = req.query.card_number;
   var expDate = req.query.exp_date;
   var cvv = req.query.cvv;
-    var userID = req.query.userID;
   var pwd = req.query.pwd;
 
-  var users = readFile(__dirname+"/data/json/", "users.json");
-    users = JSON.parse(users);
-
-    var response = null;
-    if(users.hasOwnProperty(userID)){
-        user = {
-            "firstname": fName,
-            "lastname": lName,
-            "password": pwd,
-            "paymentcard": {
-                "nameoncard":nameOnCard,
-                "card":card,
-                "cardnumber":cardNumber,
-                "expdate":expDate,
-                "cvv":cvv
-            }
-        };
-        users[userID]=user;
-        response = true;
-        writeFile(__dirname+"/data/json/", "users.json", users);
-    } else {
-        response = {
-            "error": "110",
-            "description": "USerID: "+userID+" already present."
-        }
+  var data = readFile(__dirname+"/data/json/", "users.json");
+  //console.log(data.toString());
+  data = JSON.parse(data);
+  NumOfUsers = sizeOf(data);
+  user = {
+    "firstname": fName,
+    "lastname": lName,
+    "password": pwd,
+    "paymentcard": {
+        "nameoncard":nameOnCard,
+        "card":card,
+        "cardnumber":cardNumber,
+        "expdate":expDate,
+        "cvv":cvv
     }
-
-    res.end(JSON.stringify(response));
+  };
+  data["user"+(NumOfUsers+1)]=user;
+  writeFile(__dirname+"/data/json/", "users.json", data);
 });
 
+
 // This function Add new Items to the specified cart
+app.get('/addItem', function(req,res){
+  var cartID = "cart"+req.query.cartID;
+  var itemID = "item"+req.query.upc;
+  var userID = "user"+req.query.userID;
+  var quantity = req.query.quantity;
+
+  var carts=readFile(__dirname+"/data/json/","carts.json");
+
+  carts = JSON.parse(carts);
+  var NumOfCarts = sizeOf(carts);
+  var cart = carts[cartID];
+  console.log("Selected Cart: "+ cartID+" : "+JSON.stringify(cart));
+  var cartSize = sizeOf(cart);
+  var cartEntry = {
+    "id":itemID,
+    "quantity":quantity,
+    "addedBy":userID
+  };
+  cart["i"+(cartSize+1)] = cartEntry;
+  console.log("Modified: "+JSON.stringify(cart));
+  carts[cartID] = cart;
+  //console.log(JSON.stringify(carts));
+  writeFile(__dirname+"/data/json/","carts.json", carts);
+});
+
+// This funciton is to get a cart
+app.get('/getCart', function(req, res){
+  var response = getCart(req.query.cartID);
+  res.end(JSON.stringify(response));
+});
+
+// This function is for checkout
+app.get('/checkout', function(req, res){
+  var cartID = "cart"+req.query.cartID;
+  var userID = "user"+req.query.userID;
+  var cartResponse = getCart(req.query.cartID);
+  response = {
+    "userID": userID,
+    // TODO: Add this statu to cart object
+    "staus": "checkedout",
+    "response": cartResponse
+  }
+  res.end(JSON.stringify(response));
+});
+
+
+// Ankita's services - code
+
+//function to check the groups and their users
+app.get('/listGroups', function (req, res) {
+    fs.readFile( __dirname + "/" + "../data/json/groups.json", 'utf8', function (err, data){
+       console.log( data );
+       res.end( data );
+   });
+})
+
+//Function to add group
+app.get('/AddGroup', function (req, res) {
+  var QRString = req.query.QRString;
+  console.log("QRString",QRString);
+  var user = req.query.userID;
+  var groups=readFile(__dirname+"/data/json/","groups.json");
+  var carts =readFile(__dirname+"/data/json/","carts.json");
+  groups = JSON.parse( groups );
+  carts = JSON.parse( carts );
+  var NumOfGroups = sizeOf(groups);
+  var NumOfCarts = sizeOf(carts);
+
+  if(groups[QRString] == null)
+  {
+  //  var newgroup;
+  //  newgroup.push(user);
+    groups[QRString]=user
+    //console.log("NEWGROUP",newgroup);
+  //  groups['Users'] = newgroup;
+    console.log("Add new groups"+groups);
+    res.end( JSON.stringify(groups,null,'\t'));
+    console.log("Modified: "+JSON.stringify(groups));
+    writeFile(__dirname+"/data/json/","groups.json", groups);
+    console.log("Group has been added");
+  }
+  else {
+    var group = groups[QRString];
+    console.log("group",group);
+    console.log ("ALready grp there but user same");
+    console.log(group.hasOwnProperty(user));
+   //console.log(group[i]);
+	//var i = null;
+	//for (i = 0; i<group.length; i++) {
+		//if (group[i] === user) {
+	//		console.log("Found at" group[i]);
+		//}
+	//}
+
+    if(group.hasOwnProperty(user))
+    {
+      console.log("Entered inside")
+      response = {
+        "error": "300",
+        "description": "User is already present in group. User :"+user +" groupID : "+QRString
+      }
+      res.end(JSON.stringify(response));
+    }
+    else
+    {
+      group.push(user)
+
+      groups[QRString]= group
+    //var groupusers = group["users"];
+    //NumOfgroupUsers = sizeOf(groupusers)
+    //groupusers["u"+(NumOfgroupUsers + 1)] = user;
+    //group["users"]= groupusers;
+    //groups[QRString] = group;
+    res.end( JSON.stringify(groups,null,'\t'));
+    console.log("Modified: "+JSON.stringify(groups));
+    writeFile(__dirname+"/data/json/","groups.json", groups);
+    console.log("New user has been added to already existing group");
+  }
+  }
+});
+
+//Function to get the group
+app.get('/getGroup', function(req, res){
+  var cID  = req.query.cartID;
+  var cart = getCart(cID);
+  var status = cart["status"];
+  response = {
+    "cartID": "cart"+cID,
+    "item list": cart,
+    "status": status
+  }
+  res.end(JSON.stringify(response,null,'\t'));
+
+});
+
+//Services for invitations
+app.get('/checkInvitation', function(req, res){
+  var touser = req.query.touser;
+  var invites=readFile(__dirname+"/data/json/","invitations.json");
+  invites = JSON.parse(invites);
+  console.log(invites);
+  if(invites.hasOwnProperty(touser)){
+    var inv = invites[touser];
+    response = inv;
+  }
+  else {
+    response = {
+      "error": "222",
+      "description":"No invitations have been sent for user: "+ touser
+    }
+  }
+  res.end(JSON.stringify(response,null,'\t'));
+});
+
+
+
+app.get('/sendInvitation', function(req, res){
+  var touser = req.query.touser;
+  var groupID = req.query.groupID;
+  var fromuser = req.query.fromuser;
+  var invites=readFile(__dirname+"/data/json/","invitations.json");
+  invites = JSON.parse(invites);
+  console.log(invites);
+  if(invites.hasOwnProperty(touser)){
+    var inv = invites[touser];
+    response = inv;
+  }
+  else {
+    response = {
+      "error": "222",
+      "description":"No invitations have been sent for user: "+ touser
+    }
+  }
+  res.end(JSON.stringify(response,null,'\t'));
+});
+
+
+/* -------------------------- Utility function --------------------------*/
+var readFile = function(dir, fileName){
+  var data = fs.readFileSync(dir+fileName);
+  return data
+};
+var writeFile = function(dir, fileName, data){
+  var result = fs.writeFile(dir+fileName,
+                  JSON.stringify(data, null,'\t'), function(err){
+                    if(err){
+                      return console.log(err);
+                    }
+                    console.log("File Write Complete: Updated - "+fileName);
+              });
+};
+var sizeOf = function(jsonObj){ return Object.keys(jsonObj).length };
+var getCart = function(ID){
+  var cartID = "cart"+ID;
+  // reding carts.json
+  var carts=readFile(__dirname+"/data/json/","carts.json");
+  carts = JSON.parse(carts);
+  // selecting cart
+  var NumOfCarts = sizeOf(carts);
+  var response;
+  if(parseInt(ID) <= NumOfCarts){
+      var cart = carts[cartID];
+      response = cart;
+  }else{
+    var err = {
+      "status":500,
+      "description":"CartID not found. CartID: "+cartID
+    }
+    response = err;
+  }
+  return response;
+};
+var getUser = function(ID){
+  var userID = "user"+ID;
+  var users = readFile(__dirname+"/data/json/","users.json");
+  users = JSON.parse(users);
+  var NumOfUsers = sizeOf(users);
+  var response;
+
+  for(var user in users){
+
+  }
+
+  if(parseInt(ID) <= NumOfUsers){
+    var user = users[userID];
+    response = user;
+  }else{
+    var err = {
+      "status":500,
+      "description":"UserID not found. UserID: "+userID
+    }
+    response = err;
+  }
+  return response;
+};
+/* -------------------------- Server Config --------------------------*/
+var server =app.listen(8081, function(){
+  var host = server.address().address;
+  var port = server.address().port;
+  console.log("Example app listening  Ssdd at http://%s:%s", host, port);
+});
+
+
+
+
+
+
 app.get('/addItem', function(req,res){
   var cartID = req.query.cartID;
   var upc = req.query.upc;
@@ -75,35 +313,20 @@ app.get('/addItem', function(req,res){
   var carts=readFile(__dirname+"/data/json/","carts.json");
   carts = JSON.parse(carts);
 
-  var cart = getOnlyCart(cartID);
+  var cart = getCart(cartID);
 
   if(!cart.hasOwnProperty("error")){
     // check if item is present
     if(cart["status"] == "InProgress"){
       if(!cart.hasOwnProperty(upc)){
-        var itemDetails = getItem(upc);
-        // Check if Item is present. Cannot add if Item not in Items.json
-        if(!itemDetails.hasOwnProperty("error")){
-          // Check if user has access to the cart.
-          if(getGroup(cartID).hasOwnProperty(userID)){
-            var itemEntry = {
-              "quantity": quantity,
-              "addedBy": userID
-            };
-            cart[upc] = itemEntry;
-            carts[cartID] = cart;
-            writeFile(__dirname+"/data/json/","carts.json", carts);
-            response = cart;
-          } else {
-            response = {
-              "error": "330",
-              "description": "User "+userID+" not authorized to add to cartd : "+cartID
-            }
-          }
-        } else {
-          // ERROR Item not present
-          response = itemDetails;
-        }
+        var itemEntry = {
+          "quantity": quantity,
+          "addedBy": userID
+        };
+        cart[upc] = itemEntry;
+        carts[cartID] = cart;
+        response = cart;
+        writeFile(__dirname+"/data/json/","carts.json", carts);
       } else {
         response = {
           "error": "300",
@@ -118,291 +341,18 @@ app.get('/addItem', function(req,res){
       };
     }
   } else {
-      var upcEntry = {
-          "quantity": quantity,
-          "addedBy": userID
-      };
-    // cartID not present. Create cart with item and status "InProgress"
+    // cartID not present. Create Empty cart with status "InProgress"
     cart = {
-      "status": "InProgress"
-    };
-      cart[upc] = upcEntry;
+      "status": "InProgress",
+      upc:{
+        "quantity": quantity,
+        "addedBy": userID
+      }
+    }
     carts[cartID] = cart;
     response = cart;
     writeFile(__dirname+"/data/json/","carts.json", carts);
   }
 
   res.end(JSON.stringify(response));
-});
-
-// This function is user to delete Item from given cart
-app.get('/deleteItem', function(req, res){
-    console.log("/deleteItem : "+JSON.stringify(req.query));
-
-    var cartID = req.query.cartID;
-    var upc = req.query.upc;
-    var userID = req.query.userID;
-    var response;
-    var carts = readFile(__dirname+"/data/json/", "carts.json");
-    carts = JSON.parse(carts);
-    var cart = getOnlyCart(cartID);
-    var itemDetails = getItem(upc);
-    var curGroup = getGroup(cartID);
-
-    if(!itemDetails.hasOwnProperty("error")){ // Check for valid item
-        if(!cart.hasOwnProperty("error")){ // Check for valid cart
-            if(curGroup.hasOwnProperty(userID) && curGroup[userID] == "OWNER"){ // Check if user is authorized
-                if(cart.hasOwnProperty(upc)){ // Check if cart has the item
-                    // delete the item from cart
-                    delete cart[upc];
-                    console.log("Deleted Item: "+upc+" from cart: "+cartID+" by User:"+userID);
-                    carts[cartID] = cart;
-                    writeFile(__dirname+"/data/json/","carts.json",carts);
-                } else {
-                    response = {
-                        "error" : "220",
-                        "description": "Item : "+upc+" not found in cart: "+cartID
-                    }
-                }
-            } else {
-                response = {
-                    "error" : "210",
-                    "description": "User: "+userID+" not authorized to cart: "+cartID
-                }
-            }
-        } else {
-            response = cart;
-        }
-    } else {
-        response = itemDetails;
-    }
-
-    res.end(JSON.stringify(response));
-});
-
-// This funciton is to get a cart
-app.get('/getCart', function(req, res){
-  var response = getCart(req.query.cartID);
-  res.end(JSON.stringify(response));
-});
-
-// This function is for checkout
-app.get('/checkout', function(req, res){
-  var cartID = req.query.cartID;
-  var userID = req.query.userID;
-  console.log("/checkout : "+JSON.stringify(req.query));
-
-  var cart = getOnlyCart(req.query.cartID);
-  var response = null;
-  if(!cart.hasOwnProperty("error")){
-      if(getGroup(cartID).hasOwnProperty(userID)){
-      // Need to check if the user is in the same group as cart
-      if(cart.status != "CheckedOut"){
-        cart.status = "CheckedOut";
-        var carts = readFile(__dirname+"/data/json/","carts.json");
-        carts = JSON.parse(carts);
-        carts[cartID] = cart;
-        response = true;
-        writeFile(__dirname+"/data/json/","carts.json", carts);
-        console.log("/Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
-      } else {
-          response = {
-              "error":"550",
-              "description": "Cart is already CheckedOut. CartID : "+cartID
-          }
-      }
-
-    } else {
-          response = {
-              "error": "330",
-              "description": "User "+userID+" not authorized to checkout cartd : "+cartID
-          }
-    }
-  }
-  else{
-    // CartID not found
-    response = cart;
-    console.log("/Checkout: ERROR - "+response.description);
-  }
-
-  res.end(JSON.stringify(response));
-});
-
-app.get("/getGroup", function(req, res){
-  console.log("/getGroup : "+JSON.stringify(req.query));
-  var groupID = req.query.groupID;
-  var response = getGroup(groupID);
-  res.end(JSON.stringify(response));
-});
-
-app.get("/addGroup", function(req, res){
-  console.log("/addGroup: "+JSON.stringify(req.query));
-
-  var groupID = req.query.groupID;
-  var userID = req.query.userID;
-  var groups = readFile(__dirname+"/data/json/", "groups.json");
-  groups = JSON.parse(groups);
-  var response = null;
-
-  if(groups.hasOwnProperty(groupID)){
-    var groupUsers = groups[groupID];
-    if(groupUsers.hasOwnProperty(userID)){
-      // User Already a member of group
-      response = {
-        "error": "440",
-        "description": "User "+userID+" is already a member of Group : "+groupID
-      }
-    } else {
-      // Add user
-      groupUsers[userID] = "USER";
-      groups[groupID] = groupUsers;
-      console.log("User "+userID+" added to group "+groupID);
-      writeFile(__dirname+"/data/json/", "groups.json",groups);
-    }
-
-  } else {
-    // Group does not exist. Create a new group and add user
-    var groupUsers={};
-      groupUsers[userID] = "OWNER";
-    groups[groupID] = groupUsers;
-    console.log("New Group create, groupID: "+groupID+" with user "+userID+" as OWNER");
-    console.log(JSON.stringify(groups));
-    writeFile(__dirname+"/data/json/", "groups.json",groups);
-  }
-  res.end(JSON.stringify(response));
-});
-
-// This function is to delete user
-app.get('/deleteUser', function(req, res){
-  var ID = req.query.userID;
-  var users = readFile(__dirname+"/data/json/","users.json");
-  users = JSON.parse(users);
-  delete users["user"+ID];
-  console.log("Number of Users : "+sizeOf(users))
-  writeFile(__dirname+"/data/json/","users.json", users);
-});
-
-/* -------------------------- Utility function --------------------------*/
-var readFile = function(dir, fileName){
-  console.log("Reading File : "+dir+fileName);
-  var data = fs.readFileSync(dir+fileName);
-  return data
-};
-var writeFile = function(dir, fileName, data){
-  var result = fs.writeFile(dir+fileName,
-      JSON.stringify(data, null,'\t'), function(err){
-        if(err){
-          return console.log(err);
-        }
-        console.log("File Write Complete: Updated - "+fileName);
-      });
-};
-var sizeOf = function(jsonObj){ return Object.keys(jsonObj).length };
-
-var getCart = function(ID){
-    var cartID = ID;
-    var response = null;
-    var carts = readFile(__dirname+"/data/json/","carts.json");
-    carts = JSON.parse(carts);
-    if(carts.hasOwnProperty(cartID)) {
-        var cart = carts[cartID];
-        var response = {};
-        // Loop through cart elememts and create response
-        for(var element in cart){
-            if(element == "status"){
-                response[element] = cart[element];
-            } else {
-                // Adding additional details for Items
-                var Items = readFile(__dirname+"/data/json/", "items.json");
-                Items = JSON.parse(Items);
-
-                var curItemDetails = cart[element];
-                var itemDetails = Items[element];
-
-                response[element] = {
-                    "name": itemDetails["name"],
-                    "price": itemDetails["price"],
-                    "quantity": curItemDetails["quantity"],
-                    "addedBy": curItemDetails["addedBy"]
-                }
-            }
-        }
-    } else {
-        response = {
-            "error" : "400",
-            "description":"CartID not found. CartID: "+cartID
-        }
-    }
-    return response;
-};
-
-var getOnlyCart = function(ID){
-    var cartID = ID;
-    var response = null;
-    var carts = readFile(__dirname+"/data/json/","carts.json");
-    carts = JSON.parse(carts);
-    if(carts.hasOwnProperty(cartID)) {
-        var cart = carts[cartID];
-        var response = cart;
-
-    } else {
-        response = {
-            "error" : "400",
-            "description":"CartID not found. CartID: "+cartID
-        }
-    }
-    return response;
-};
-
-var getUser = function(ID){
-  var userID = ID;
-  var users = readFile(__dirname+"/data/json/","users.json");
-  users = JSON.parse(users);
-  var response = null;
-  response = users[userID];
-  if(response == null) {
-    var err = {
-      "error":500,
-      "description":"UserID not found. UserID: "+userID
-    }
-    response = err;
-  }
-  return response;
-};
-
-var getItem = function(upc){
-  var response = null;
-  var Items = readFile(__dirname+"/data/json/", "items.json");
-  Items = JSON.parse(Items);
-
-  if(Items.hasOwnProperty(upc)){
-    response = Items[upc];
-  } else {
-    response = {
-      "error": "500",
-      "description": "Item not found. UPC : "+upc
-    }
-  }
-  return response;
-}
-
-var getGroup = function(groupID){
-  var groups = readFile(__dirname+"/data/json/","groups.json");
-  groups = JSON.parse(groups);
-  var response = null;
-  if(groups.hasOwnProperty(groupID)){
-    response = groups[groupID];
-  } else {
-    response = {
-      "error": "660",
-      "description": "GroupID not found. GroupID : "+groupID
-    }
-  }
-  return response;
-}
-/* -------------------------- Server Config --------------------------*/
-var server =app.listen(8081, function(){
-  var host = server.address().address;
-  var port = server.address().port;
-  console.log("Example app listening  Ssdd at http://%s:%s", host, port);
 });

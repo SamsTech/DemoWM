@@ -1,24 +1,16 @@
 {
-	"1283787817": {
-      "Akhil": "OWNER",
-      "Guli": "USER"
-    },
-	"9237326742": {
-      "Josh": "OWNER",
-      "Lobo": "USER",
-      "Akhil": "USER"
-    },
-	"8462568257": {
-      "Ravi": "OWNER",
-      "Jinzhi": "USER",
-      "Charles": "USER"
-    },
-	"923732674276": {
-      "Ankita": "OWNER",
-      "Akhil": "USER"
-    },
-	"9876543212398": {
-		"Ravi": "OWNER",
-		"Lobo": "USER"
-	}
+	"1283787817": [
+		"Akhil",
+		"Guli"
+	],
+	"9237326742": [
+		"Josh",
+		"Lobo"
+	],
+	"8462568257": [
+		"Ravi",
+		"Jinzhi",
+		"Charles"
+		]
+
 }
