@@ -15,15 +15,16 @@
   <form action="http://127.0.0.1:8081/listUser" method="GET">
       <input type = "submit" value = "Submit">
   </form>
-  <h1 class="notcompleted"> Get User </h1>
+  <h1 class="completed"> Get User </h1>
   <form action="http://127.0.0.1:8081/getUser" method="GET">
       ID : <input type="text" name="userID"/><br>
       <input type = "submit" value = "Submit">
   </form>
-  <h1 class="notcompleted"> Add User </h1>
+  <h1 class="completed"> Add User </h1>
   <form action="http://127.0.0.1:8081/addUser" method="GET">
     First Name: <input type = "text" name = "first_name">  <br>
     Last Name: <input type = "text" name = "last_name"> <br>
+    UserID: <input type = "text" name = "userID">  <br>
     Password: <input type ="text" name="pwd"><br>
     Payment Details: <br>
     Name on card: <input type = "text" name="name_on_card"><br>
@@ -46,7 +47,7 @@
     UserID : <input type="text" name="userID"/><br>
       <input type = "submit" value = "Submit">
   </form>
-  <h1 class="notcompleted"> Delete Item </h1>
+  <h1 class="completed"> Delete Item </h1>
   <form action="http://127.0.0.1:8081/deleteItem" method="GET">
     cartID : <input type="text" name="cartID"/><br>
     UPC : <input type="text" name="upc"/><br>
@@ -74,16 +75,16 @@ bla bla bla
     <input type = "submit" value = "Submit">
 </form>
 
-<h1 class="completed"> Create Group </h1>
-<form action="http://127.0.0.1:8081/AddGroup" method="GET">
-  QRString: <input type = "text" name = "QRString">  <br>
+<h1 class="completed"> Add Group </h1>
+<form action="http://127.0.0.1:8081/addGroup" method="GET">
+  QRString: <input type = "text" name = "groupID">  <br>
   UserID: <input type = "text" name = "userID"> <br>
   <input type = "submit" value = "Submit">
 </form>
 
 <h1 class="completed"> Get Group </h1>
 <form action="http://127.0.0.1:8081/getGroup" method="GET">
-  cartID : <input type="text" name="cartID"/><br>
+  groupID : <input type="text" name="groupID"/><br>
            <input type = "submit" value = "Submit">
 </form>
 
