@@ -88,5 +88,26 @@ bla bla bla
            <input type = "submit" value = "Submit">
 </form>
 
+<h1 class="completed"> Check Invitation </h1>
+<form action="http://127.0.0.1:8081/checkInvitation" method="GET">
+  cartID : <input type="text" name="touser"/><br>
+           <input type = "submit" value = "Submit">
+</form>
+
+<h1 class="completed"> Send Invitation </h1>
+<form action="http://127.0.0.1:8081/sendInvitation" method="GET">
+ From user: <input type="text" name="fromuser"/><br>
+ Group ID: <input type="text" name="groupID"/><br>
+ To user: <input type="text" name="touser"/><br>
+          <input type = "submit" value = "Submit">
+</form>
+
+<h1 class="not completed"> Delete Invitation </h1>
+<form action="http://127.0.0.1:8081/deleteInvitation" method="GET">
+ From user: <input type="text" name="fromuser"/><br>
+ Group ID: <input type="text" name="groupID"/><br>
+ To user: <input type="text" name="touser"/><br>
+          <input type = "submit" value = "Submit">
+</form>
 </body>
 </html>

@@ -159,6 +159,7 @@ app.get('/deleteItem', function(req, res){
                     console.log("Deleted Item: "+upc+" from cart: "+cartID+" by User:"+userID);
                     carts[cartID] = cart;
                     writeFile(__dirname+"/data/json/","carts.json",carts);
+
                 } else {
                     response = {
                         "error" : "220",
@@ -282,6 +283,142 @@ app.get('/deleteUser', function(req, res){
   console.log("Number of Users : "+sizeOf(users))
   writeFile(__dirname+"/data/json/","users.json", users);
 });
+
+//Services for invitations
+
+/* Service to check for existing/valid invitations*/
+app.get('/checkInvitation', function(req, res){
+  var touser = req.query.touser;
+  var groupID = req.query.groupID;
+  var fromuser = req.query.fromuser;
+  var invites=readFile(__dirname+"/data/json/","invitations.json");
+  invites = JSON.parse(invites);
+//  console.log(invites);
+  if(invites.hasOwnProperty(touser)){
+    var inv = invites[touser];
+    response = inv;
+  }
+  else {
+    response = {
+      "error": "222",
+      "description":"No invitations have been sent for user: "+ touser
+    }
+  }
+  res.end(JSON.stringify(response,null,'\t'));
+});
+
+/* Service to send an invitation */
+app.get('/sendInvitation', function(req, res){
+  var touser = req.query.touser;
+  var groupID = req.query.groupID;
+  var fromuser = req.query.fromuser;
+  var invites=readFile(__dirname+"/data/json/","invitations.json");
+  var groups=readFile(__dirname+"/data/json/","groups.json");
+  var users=readFile(__dirname+"/data/json/","users.json");
+
+  invites = JSON.parse(invites);
+  groups = JSON.parse(groups);
+  users = JSON.parse(users);
+  console.log(invites);
+  var group = groups[groupID];
+
+  if(users.hasOwnProperty(fromuser)){
+    if(groups.hasOwnProperty(groupID)){
+       if(group.hasOwnProperty(fromuser)){
+          if(users.hasOwnProperty(touser)){
+
+              if(!invites.hasOwnProperty(touser)){
+                    console.log("New invite has been sent to user : " + touser);
+                     var response = {
+                       "groupID":groupID,
+                       "From"   :fromuser
+                     }
+                     invites[touser]=response
+                     response = true
+                     writeFile(__dirname+"/data/json/", "invitations.json",invites );
+                     res.end(JSON.stringify(response,null,'\t'));
+              }
+                  else {
+                      if(invites[touser].groupID == groupID){
+                        response =
+                        {
+                          "error":"322",
+                          "description":"Invitation is already sent to user: "+ touser + " for groupID: "+ groupID + " by user: "+ invites[touser].From
+                        }
+                        res.end(JSON.stringify(response,null,'\t'));
+                      }
+                      else {
+                        console.log("New invite has been sent to same user for a different group ");
+                        var response = {
+                          "groupID":groupID,
+                          "From"   :fromuser
+                        }
+                        invites[touser]=response
+                        response = true
+                        writeFile(__dirname+"/data/json/", "invitations.json",invites );
+                        res.end(JSON.stringify(response,null,'\t'));
+                      }
+
+                    }
+                  }
+                  else{
+                         var response = {
+                                  "error":"302",
+                                  "description":"To user: " + touser+ " is not authorized to access this group: " + groupID
+                                  }
+                    res.end(JSON.stringify(response,null,'\t'));
+                  }
+            }
+        else{
+         var response = {
+                      "error":"302",
+                      "description":"From user " + fromuser+ " is not authorized to access this group: " + groupID
+                      }
+        res.end(JSON.stringify(response,null,'\t'));
+      }
+}
+else{
+
+    var response = {
+      "error":"304",
+      "description":"Group ID: " + groupID + " is not valid"
+    }
+    res.end(JSON.stringify(response,null,'\t'));
+
+}
+
+  }
+  else {
+    var response = {
+      "error":"300",
+      "description":"From user " + fromuser + " is not a valid user"
+    }
+    res.end(JSON.stringify(response,null,'\t'));
+  }
+});
+
+/* Service to delete the invitation */
+app.get('/deleteInvitation', function(req, res){
+  var touser = req.query.touser;
+  var groupID = req.query.groupID;
+  var fromuser = req.query.fromuser;
+  var invites=readFile(__dirname+"/data/json/","invitations.json");
+  invites = JSON.parse(invites);
+  //console.log("Original invites:",invites);
+  var invite = invites[touser];
+
+  if(invite.hasOwnProperty(groupID)){
+    if(invite.hasOwnProperty(fromuser)){
+        var inv = delete invite;
+          }
+      }
+  console.log ("Invitation from : "+ fromuser +" denied by :"+ touser );
+  invites[touser] = inv;
+  writeFile(__dirname+"/data/json/","invitations.json",invites);
+  //console.log("Modified invitations list",invites);
+  //res.end(JSON.stringify(invites,null,'\t'));
+});
+
 
 /* -------------------------- Utility function --------------------------*/
 var readFile = function(dir, fileName){
