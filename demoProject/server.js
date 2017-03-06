@@ -16,7 +16,9 @@ app.get('/listUser', function(req, res){
 // This function returns User Information
 app.get('/getUser', function(req, res) {
   var response = getUser(req.query.userID);
-  //response = JSON.parse(response);
+  if(response.hasOwnProperty("error")){
+      console.error(response["description"]);
+  }
   res.end(JSON.stringify(response));
 });
 
@@ -37,7 +39,7 @@ app.get('/addUser', function(req, res) {
     users = JSON.parse(users);
 
     var response = null;
-    if(users.hasOwnProperty(userID)){
+    if(!users.hasOwnProperty(userID)){
         user = {
             "firstname": fName,
             "lastname": lName,
@@ -58,6 +60,7 @@ app.get('/addUser', function(req, res) {
             "error": "110",
             "description": "USerID: "+userID+" already present."
         }
+        console.error(response["description"]);
     }
 
     res.end(JSON.stringify(response));
@@ -71,7 +74,6 @@ app.get('/addItem', function(req,res){
   var userID = req.query.userID;
   var quantity = req.query.quantity;
 
-  console.log("/addItem : "+JSON.stringify(req.query));
   var response = null;
 
   var carts=readFile(__dirname+"/data/json/","carts.json");
@@ -99,12 +101,14 @@ app.get('/addItem', function(req,res){
                   } else {
                       // ERROR Item not present
                       response = itemDetails;
+                      console.error(response["description"]);
                   }
               } else {
                   response = {
                       "error": "300",
                       "description": "Item is already present in cart. UPC :"+upc+" cartID : "+cartID
-                  }
+                  };
+                  console.error(response["description"]);
               }
           }
           else {
@@ -112,32 +116,48 @@ app.get('/addItem', function(req,res){
                   "error": "200",
                   "description":"Cart Status is not In Progress"
               };
+              console.error(response["description"]);
           }
 
       } else {
           response = {
               "error": "330",
               "description": "User "+userID+" not authorized to add to cartd : "+cartID
-          }
+          };
+          console.error(response["description"]);
       }
   } else {
-      var item = getItem(upc);
-      // Create cart and Add item only if its a valid upc
-      if(!item.hasOwnProperty("error")){
-          var upcEntry = {
-              "quantity": quantity,
-              "addedBy": userID
-          };
-          // cartID not present. Create cart with item and status "InProgress"
-          cart = {
-              "status": "InProgress"
-          };
-          cart[upc] = upcEntry;
-          carts[cartID] = cart;
-          response = cart;
-          writeFile(__dirname+"/data/json/","carts.json", carts);
+
+      var validCarts = readFile(__dirname+"/data/json/", "groups.json");
+      validCarts = JSON.parse(validCarts);
+      // check if a associated group is present for this cartID.
+      // create a new cart only if there is a associated group.
+      if(validCarts.hasOwnProperty(cartID)){
+          var item = getItem(upc);
+          // Create cart and Add item only if its a valid upc
+          if(!item.hasOwnProperty("error")){
+              var upcEntry = {
+                  "quantity": quantity,
+                  "addedBy": userID
+              };
+              // cartID not present. Create cart with item and status "InProgress"
+              cart = {
+                  "status": "InProgress"
+              };
+              cart[upc] = upcEntry;
+              carts[cartID] = cart;
+              response = cart;
+              writeFile(__dirname+"/data/json/","carts.json", carts);
+          } else {
+              response = item;
+              console.error(response["description"]);
+          }
       } else {
-          response = item;
+          response = {
+              "error": "700",
+              "description": "No group is associated witht cartID: "+cartID
+          };
+          console.error(response["description"]);
       }
   }
 
@@ -160,31 +180,43 @@ app.get('/deleteItem', function(req, res){
 
     if(!itemDetails.hasOwnProperty("error")){ // Check for valid item
         if(!cart.hasOwnProperty("error")){ // Check for valid cart
-            if(curGroup.hasOwnProperty(userID) && curGroup[userID] == "OWNER"){ // Check if user is authorized
-                if(cart.hasOwnProperty(upc)){ // Check if cart has the item
-                    // delete the item from cart
-                    delete cart[upc];
-                    console.log("Deleted Item: "+upc+" from cart: "+cartID+" by User:"+userID);
-                    carts[cartID] = cart;
-                    writeFile(__dirname+"/data/json/","carts.json",carts);
+            if(cart.status == "InProgress"){ // Check for cart status
+                if(curGroup.hasOwnProperty(userID) && curGroup[userID] == "OWNER"){ // Check if user is authorized
+                    if(cart.hasOwnProperty(upc)){ // Check if cart has the item
+                        // delete the item from cart
+                        delete cart[upc];
+                        console.log("Deleted Item: "+upc+" from cart: "+cartID+" by User:"+userID);
+                        carts[cartID] = cart;
+                        writeFile(__dirname+"/data/json/","carts.json",carts);
 
+                    } else {
+                        response = {
+                            "error" : "220",
+                            "description": "Item : "+upc+" not found in cart: "+cartID
+                        };
+                        console.error(response["description"]);
+                    }
                 } else {
                     response = {
-                        "error" : "220",
-                        "description": "Item : "+upc+" not found in cart: "+cartID
-                    }
+                        "error" : "210",
+                        "description": "User: "+userID+" not authorized to cart: "+cartID
+                    };
+                    console.error(response["description"]);
                 }
             } else {
                 response = {
-                    "error" : "210",
-                    "description": "User: "+userID+" not authorized to cart: "+cartID
-                }
+                    "error": "210",
+                    "description": "CartID : "+cartID+" is already CheckedOut"
+                };
+                console.error(response["description"]);
             }
         } else {
             response = cart;
+            console.error(response["description"]);
         }
     } else {
         response = itemDetails;
+        console.error(response["description"]);
     }
 
     res.end(JSON.stringify(response));
@@ -210,31 +242,41 @@ app.get('/checkout', function(req, res){
       if(getGroup(cartID).hasOwnProperty(userID)){
       // Need to check if the user is in the same group as cart
       if(cart.status != "CheckedOut"){
-        cart.status = "CheckedOut";
-        var carts = readFile(__dirname+"/data/json/","carts.json");
-        carts = JSON.parse(carts);
-        carts[cartID] = cart;
-        response = true;
-        writeFile(__dirname+"/data/json/","carts.json", carts);
-        console.log("/Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
+          if(sizeOf(cart) > 1) {
+              cart.status = "CheckedOut";
+              var carts = readFile(__dirname+"/data/json/","carts.json");
+              carts = JSON.parse(carts);
+              carts[cartID] = cart;
+              response = true;
+              writeFile(__dirname+"/data/json/","carts.json", carts);
+              console.log("/Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
+          } else {
+              response = {
+                  "error": "900",
+                  "description": "Empty cart cannot be CheckedOut." + "\n" + JSON.stringify(cart, null, '\t')
+              };
+              console.error(response["description"]);
+          }
       } else {
           response = {
               "error":"550",
               "description": "Cart is already CheckedOut. CartID : "+cartID
-          }
+          };
+          console.error(response["description"]);
       }
 
     } else {
           response = {
               "error": "330",
               "description": "User "+userID+" not authorized to checkout cartd : "+cartID
-          }
+          };
+          console.error(response["description"]);
     }
   }
   else{
     // CartID not found
     response = cart;
-    console.log("/Checkout: ERROR - "+response.description);
+      console.error(response["description"]);
   }
 
   res.end(JSON.stringify(response));
@@ -265,7 +307,8 @@ app.get("/addGroup", function(req, res){
       response = {
         "error": "440",
         "description": "User "+userID+" is already a member of Group : "+groupID
-      }
+      };
+        console.error(response["description"]);
     } else {
         // check for valid user
         if(users.hasOwnProperty(userID)){
@@ -273,12 +316,14 @@ app.get("/addGroup", function(req, res){
             groupUsers[userID] = "USER";
             groups[groupID] = groupUsers;
             console.log("User "+userID+" added to group "+groupID);
+            response = true;
             writeFile(__dirname+"/data/json/", "groups.json",groups);
         } else {
             response = {
                 "error": "400",
                 "description": " User ID: "+userID+" not registered."
-            }
+            };
+            console.error(response["description"]);
         }
     }
 
@@ -290,13 +335,15 @@ app.get("/addGroup", function(req, res){
           groupUsers[userID] = "OWNER";
           groups[groupID] = groupUsers;
           console.log("New Group create, groupID: "+groupID+" with user "+userID+" as OWNER");
-          console.log(JSON.stringify(groups));
+          console.log(JSON.stringify(groups[groupID], null, '\t'));
+          response = true;
           writeFile(__dirname+"/data/json/", "groups.json",groups);
       } else {
           response = {
               "error": "400",
               "description": " User ID: "+userID+" not registered."
-          }
+          };
+          console.error(response["description"]);
       }
   }
   res.end(JSON.stringify(response));
@@ -331,13 +378,15 @@ app.get('/checkInvitation', function(req, res){
          response = {
              "error": "222",
              "description":"No invitations have been sent for user: "+ touser
-         }
+         };
+         console.error(response["description"]);
      }
  } else {
      response = {
          "error": "700",
          "description":"User: "+ touser+ " is not Registered."
-     }
+     };
+     console.error(response["description"]);
  }
   res.end(JSON.stringify(response,null,'\t'));
 });
@@ -379,7 +428,8 @@ app.get('/sendInvitation', function(req, res){
                         {
                           "error":"322",
                           "description":"Invitation is already sent to user: "+ touser + " for groupID: "+ groupID + " by user: "+ invites[touser].From
-                        }
+                        };
+                          console.error(response["description"]);
                         res.end(JSON.stringify(response,null,'\t'));
                       }
                       else {
@@ -397,18 +447,20 @@ app.get('/sendInvitation', function(req, res){
                     }
           }
           else{
-                         var response = {
+              var response = {
                                   "error":"302",
                                   "description":"To user: " + touser+ " is not authorized to access this group: " + groupID
-                                  }
-                    res.end(JSON.stringify(response,null,'\t'));
-                  }
+                                  };
+              console.error(response["description"]);
+              res.end(JSON.stringify(response,null,'\t'));
+          }
        }
        else{
          var response = {
                       "error":"302",
                       "description":"From user " + fromuser+ " is not authorized to access this group: " + groupID
-                      }
+                      };
+           console.error(response["description"]);
         res.end(JSON.stringify(response,null,'\t'));
       }
     }
@@ -417,7 +469,8 @@ app.get('/sendInvitation', function(req, res){
     var response = {
       "error":"304",
       "description":"Group ID: " + groupID + " is not valid"
-    }
+    };
+        console.error(response["description"]);
     res.end(JSON.stringify(response,null,'\t'));
 
 }
@@ -427,7 +480,8 @@ app.get('/sendInvitation', function(req, res){
     var response = {
       "error":"300",
       "description":"From user " + fromuser + " is not a valid user"
-    }
+    };
+      console.error(response["description"]);
     res.end(JSON.stringify(response,null,'\t'));
   }
 });
@@ -496,7 +550,8 @@ var getCart = function(ID){
         response = {
             "error" : "400",
             "description":"CartID not found. CartID: "+cartID
-        }
+        };
+        console.error(response["description"]);
     }
     return response;
 };
@@ -514,7 +569,7 @@ var getOnlyCart = function(ID){
         response = {
             "error" : "400",
             "description":"CartID not found. CartID: "+cartID
-        }
+        };
     }
     return response;
 };
@@ -529,7 +584,7 @@ var getUser = function(ID){
     var err = {
       "error":500,
       "description":"UserID not found. UserID: "+userID
-    }
+    };
     response = err;
   }
   return response;
