@@ -255,6 +255,7 @@ app.get("/addGroup", function(req, res){
   var groups = readFile(__dirname+"/data/json/", "groups.json");
     var users = readFile(__dirname+"/data/json/", "users.json");
   groups = JSON.parse(groups);
+    users = JSON.parse(users);
   var response = null;
 
   if(groups.hasOwnProperty(groupID)){
