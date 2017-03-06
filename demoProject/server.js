@@ -121,18 +121,24 @@ app.get('/addItem', function(req,res){
           }
       }
   } else {
-      var upcEntry = {
-          "quantity": quantity,
-          "addedBy": userID
-      };
-    // cartID not present. Create cart with item and status "InProgress"
-    cart = {
-      "status": "InProgress"
-    };
-      cart[upc] = upcEntry;
-    carts[cartID] = cart;
-    response = cart;
-    writeFile(__dirname+"/data/json/","carts.json", carts);
+      var item = getItem(upc);
+      // Create cart and Add item only if its a valid upc
+      if(!item.hasOwnProperty("error")){
+          var upcEntry = {
+              "quantity": quantity,
+              "addedBy": userID
+          };
+          // cartID not present. Create cart with item and status "InProgress"
+          cart = {
+              "status": "InProgress"
+          };
+          cart[upc] = upcEntry;
+          carts[cartID] = cart;
+          response = cart;
+          writeFile(__dirname+"/data/json/","carts.json", carts);
+      } else {
+          response = item;
+      }
   }
 
   res.end(JSON.stringify(response));
