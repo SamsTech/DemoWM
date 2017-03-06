@@ -22,6 +22,7 @@ app.get('/getUser', function(req, res) {
 
 // This function Adds new users
 app.get('/addUser', function(req, res) {
+    console.log("/addUser : "+JSON.stringify(req.query));
   var fName = req.query.first_name;
   var lName = req.query.last_name;
   var nameOnCard = req.query.name_on_card;
@@ -64,6 +65,7 @@ app.get('/addUser', function(req, res) {
 
 // This function Add new Items to the specified cart
 app.get('/addItem', function(req,res){
+    console.log("/addItem : "+JSON.stringify(req.query));
   var cartID = req.query.cartID;
   var upc = req.query.upc;
   var userID = req.query.userID;
@@ -159,6 +161,7 @@ app.get('/deleteItem', function(req, res){
                     console.log("Deleted Item: "+upc+" from cart: "+cartID+" by User:"+userID);
                     carts[cartID] = cart;
                     writeFile(__dirname+"/data/json/","carts.json",carts);
+
                 } else {
                     response = {
                         "error" : "220",
@@ -183,12 +186,14 @@ app.get('/deleteItem', function(req, res){
 
 // This funciton is to get a cart
 app.get('/getCart', function(req, res){
+    console.log("/getCart : "+JSON.stringify(req.query));
   var response = getCart(req.query.cartID);
   res.end(JSON.stringify(response));
 });
 
 // This function is for checkout
 app.get('/checkout', function(req, res){
+    console.log("/checkout : "+JSON.stringify(req.query));
   var cartID = req.query.cartID;
   var userID = req.query.userID;
   console.log("/checkout : "+JSON.stringify(req.query));
@@ -283,9 +288,144 @@ app.get('/deleteUser', function(req, res){
   writeFile(__dirname+"/data/json/","users.json", users);
 });
 
+//Services for invitations
+
+/* Service to check for existing/valid invitations*/
+app.get('/checkInvitation', function(req, res){
+    console.log("/checkInvitation : "+JSON.stringify(req.query));
+  var touser = req.query.toUser;
+  var invites=readFile(__dirname+"/data/json/","invitations.json");
+  invites = JSON.parse(invites);
+    var users = readFile(__dirname+"/data/json/", "users.json");
+   users = JSON.parse(users);
+ if(users.hasOwnProperty(touser)){
+     if(invites.hasOwnProperty(touser)){
+         var inv = invites[touser];
+         response = inv;
+     }
+     else {
+         response = {
+             "error": "222",
+             "description":"No invitations have been sent for user: "+ touser
+         }
+     }
+ } else {
+     response = {
+         "error": "700",
+         "description":"User: "+ touser+ " is not Registered."
+     }
+ }
+  res.end(JSON.stringify(response,null,'\t'));
+});
+
+/* Service to send an invitation */
+app.get('/sendInvitation', function(req, res){
+    console.log("/sendInvitation : "+JSON.stringify(req.query));
+  var touser = req.query.toUser;
+  var groupID = req.query.groupID;
+  var fromuser = req.query.fromUser;
+  var invites=readFile(__dirname+"/data/json/","invitations.json");
+  var groups=readFile(__dirname+"/data/json/","groups.json");
+  var users=readFile(__dirname+"/data/json/","users.json");
+
+  invites = JSON.parse(invites);
+  groups = JSON.parse(groups);
+  users = JSON.parse(users);
+  console.log(invites);
+  var group = groups[groupID];
+
+  if(users.hasOwnProperty(fromuser)){
+    if(groups.hasOwnProperty(groupID)){
+       if(group.hasOwnProperty(fromuser)){
+          if(users.hasOwnProperty(touser)){
+              if(!invites.hasOwnProperty(touser)){
+                    console.log("New invite has been sent to user : " + touser);
+                     var response = {
+                       "groupID":groupID,
+                       "From"   :fromuser
+                     }
+                     invites[touser]=response
+                     response = true
+                     writeFile(__dirname+"/data/json/", "invitations.json",invites );
+                     res.end(JSON.stringify(response,null,'\t'));
+              }
+              else {
+                      if(invites[touser].groupID == groupID){
+                        response =
+                        {
+                          "error":"322",
+                          "description":"Invitation is already sent to user: "+ touser + " for groupID: "+ groupID + " by user: "+ invites[touser].From
+                        }
+                        res.end(JSON.stringify(response,null,'\t'));
+                      }
+                      else {
+                        console.log("New invite has been sent to same user for a different group ");
+                        var response = {
+                          "groupID":groupID,
+                          "From"   :fromuser
+                        }
+                        invites[touser]=response
+                        response = true
+                        writeFile(__dirname+"/data/json/", "invitations.json",invites );
+                        res.end(JSON.stringify(response,null,'\t'));
+                      }
+
+                    }
+          }
+          else{
+                         var response = {
+                                  "error":"302",
+                                  "description":"To user: " + touser+ " is not authorized to access this group: " + groupID
+                                  }
+                    res.end(JSON.stringify(response,null,'\t'));
+                  }
+       }
+       else{
+         var response = {
+                      "error":"302",
+                      "description":"From user " + fromuser+ " is not authorized to access this group: " + groupID
+                      }
+        res.end(JSON.stringify(response,null,'\t'));
+      }
+    }
+  else{
+
+    var response = {
+      "error":"304",
+      "description":"Group ID: " + groupID + " is not valid"
+    }
+    res.end(JSON.stringify(response,null,'\t'));
+
+}
+
+  }
+  else {
+    var response = {
+      "error":"300",
+      "description":"From user " + fromuser + " is not a valid user"
+    }
+    res.end(JSON.stringify(response,null,'\t'));
+  }
+});
+
+/* Service to delete the invitation */
+app.get('/deleteInvitation', function(req, res){
+    console.log("/deleteInvitation : "+JSON.stringify(req.query));
+  var touser = req.query.toUser;
+  var groupID = req.query.groupID;
+  var fromuser = req.query.fromUser;
+  var invites=readFile(__dirname+"/data/json/","invitations.json");
+  invites = JSON.parse(invites);
+
+  delete invites[touser];
+
+  console.log ("Invitation from "+ fromuser +" denied by :"+ touser );
+  writeFile(__dirname+"/data/json/","invitations.json",invites);
+});
+
 /* -------------------------- Utility function --------------------------*/
 var readFile = function(dir, fileName){
-  console.log("Reading File : "+dir+fileName);
+  //console.log("Reading File : "+dir+fileName);
   var data = fs.readFileSync(dir+fileName);
   return data
 };
