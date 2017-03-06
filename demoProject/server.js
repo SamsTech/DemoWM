@@ -253,6 +253,7 @@ app.get("/addGroup", function(req, res){
   var groupID = req.query.groupID;
   var userID = req.query.userID;
   var groups = readFile(__dirname+"/data/json/", "groups.json");
+    var users = readFile(__dirname+"/data/json/", "users.json");
   groups = JSON.parse(groups);
   var response = null;
 
@@ -265,21 +266,37 @@ app.get("/addGroup", function(req, res){
         "description": "User "+userID+" is already a member of Group : "+groupID
       }
     } else {
-      // Add user
-      groupUsers[userID] = "USER";
-      groups[groupID] = groupUsers;
-      console.log("User "+userID+" added to group "+groupID);
-      writeFile(__dirname+"/data/json/", "groups.json",groups);
+        // check for valid user
+        if(users.hasOwnProperty(userID)){
+            // Add user
+            groupUsers[userID] = "USER";
+            groups[groupID] = groupUsers;
+            console.log("User "+userID+" added to group "+groupID);
+            writeFile(__dirname+"/data/json/", "groups.json",groups);
+        } else {
+            response = {
+                "error": "400",
+                "description": " User ID: "+userID+" not registered."
+            }
+        }
     }
 
   } else {
-    // Group does not exist. Create a new group and add user
-    var groupUsers={};
-      groupUsers[userID] = "OWNER";
-    groups[groupID] = groupUsers;
-    console.log("New Group create, groupID: "+groupID+" with user "+userID+" as OWNER");
-    console.log(JSON.stringify(groups));
-    writeFile(__dirname+"/data/json/", "groups.json",groups);
+      // check for valid user
+      if(users.hasOwnProperty(userID)){
+          // Group does not exist. Create a new group and add user
+          var groupUsers={};
+          groupUsers[userID] = "OWNER";
+          groups[groupID] = groupUsers;
+          console.log("New Group create, groupID: "+groupID+" with user "+userID+" as OWNER");
+          console.log(JSON.stringify(groups));
+          writeFile(__dirname+"/data/json/", "groups.json",groups);
+      } else {
+          response = {
+              "error": "400",
+              "description": " User ID: "+userID+" not registered."
+          }
+      }
   }
   res.end(JSON.stringify(response));
 });
