@@ -24,7 +24,7 @@ app.get('/getUser', function(req, res) {
 
 // This function Adds new users
 app.get('/addUser', function(req, res) {
-    console.log("/addUser : "+JSON.stringify(req.query));
+    console.log(Date.now()+" :: /addUser : "+JSON.stringify(req.query));
   var fName = req.query.first_name;
   var lName = req.query.last_name;
   var nameOnCard = req.query.name_on_card;
@@ -68,7 +68,7 @@ app.get('/addUser', function(req, res) {
 
 // This function Add new Items to the specified cart
 app.get('/addItem', function(req,res){
-    console.log("/addItem : "+JSON.stringify(req.query));
+    console.log(Date.now()+" :: /addItem : "+JSON.stringify(req.query));
   var cartID = req.query.cartID;
   var upc = req.query.upc;
   var userID = req.query.userID;
@@ -166,7 +166,7 @@ app.get('/addItem', function(req,res){
 
 // This function is user to delete Item from given cart
 app.get('/deleteItem', function(req, res){
-    console.log("/deleteItem : "+JSON.stringify(req.query));
+    console.log(Date.now()+" :: /deleteItem : "+JSON.stringify(req.query));
 
     var cartID = req.query.cartID;
     var upc = req.query.upc;
@@ -185,7 +185,7 @@ app.get('/deleteItem', function(req, res){
                     if(cart.hasOwnProperty(upc)){ // Check if cart has the item
                         // delete the item from cart
                         delete cart[upc];
-                        console.log("Deleted Item: "+upc+" from cart: "+cartID+" by User:"+userID);
+                        console.log(Date.now()+" :: Deleted Item: "+upc+" from cart: "+cartID+" by User:"+userID);
                         carts[cartID] = cart;
                         writeFile(__dirname+"/data/json/","carts.json",carts);
 
@@ -224,17 +224,17 @@ app.get('/deleteItem', function(req, res){
 
 // This funciton is to get a cart
 app.get('/getCart', function(req, res){
-    console.log("/getCart : "+JSON.stringify(req.query));
+    //console.log(Date.now()+" :: /getCart : "+JSON.stringify(req.query));
   var response = getCart(req.query.cartID);
   res.end(JSON.stringify(response));
 });
 
 // This function is for checkout
 app.get('/checkout', function(req, res){
-    console.log("/checkout : "+JSON.stringify(req.query));
+    console.log(Date.now()+" :: /checkout : "+JSON.stringify(req.query));
   var cartID = req.query.cartID;
   var userID = req.query.userID;
-  console.log("/checkout : "+JSON.stringify(req.query));
+  console.log(Date.now()+" :: /checkout : "+JSON.stringify(req.query));
 
   var cart = getOnlyCart(req.query.cartID);
   var response = null;
@@ -249,7 +249,7 @@ app.get('/checkout', function(req, res){
               carts[cartID] = cart;
               response = true;
               writeFile(__dirname+"/data/json/","carts.json", carts);
-              console.log("/Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
+              console.log(Date.now()+" :: /Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
           } else {
               response = {
                   "error": "900",
@@ -283,14 +283,14 @@ app.get('/checkout', function(req, res){
 });
 
 app.get("/getGroup", function(req, res){
-  console.log("/getGroup : "+JSON.stringify(req.query));
+  console.log(Date.now()+" :: /getGroup : "+JSON.stringify(req.query));
   var groupID = req.query.groupID;
   var response = getGroup(groupID);
   res.end(JSON.stringify(response));
 });
 
 app.get("/addGroup", function(req, res){
-  console.log("/addGroup: "+JSON.stringify(req.query));
+  console.log(Date.now()+" :: /addGroup: "+JSON.stringify(req.query));
 
   var groupID = req.query.groupID;
   var userID = req.query.userID;
@@ -315,7 +315,7 @@ app.get("/addGroup", function(req, res){
             // Add user
             groupUsers[userID] = "USER";
             groups[groupID] = groupUsers;
-            console.log("User "+userID+" added to group "+groupID);
+            console.log(Date.now()+" :: User "+userID+" added to group "+groupID);
             response = true;
             writeFile(__dirname+"/data/json/", "groups.json",groups);
         } else {
@@ -334,7 +334,7 @@ app.get("/addGroup", function(req, res){
           var groupUsers={};
           groupUsers[userID] = "OWNER";
           groups[groupID] = groupUsers;
-          console.log("New Group create, groupID: "+groupID+" with user "+userID+" as OWNER");
+          console.log(Date.now()+" :: New Group create, groupID: "+groupID+" with user "+userID+" as OWNER");
           console.log(JSON.stringify(groups[groupID], null, '\t'));
           response = true;
           writeFile(__dirname+"/data/json/", "groups.json",groups);
@@ -355,7 +355,7 @@ app.get('/deleteUser', function(req, res){
   var users = readFile(__dirname+"/data/json/","users.json");
   users = JSON.parse(users);
   delete users["user"+ID];
-  console.log("Number of Users : "+sizeOf(users))
+  console.log(Date.now()+" :: Number of Users : "+sizeOf(users))
   writeFile(__dirname+"/data/json/","users.json", users);
 });
 
@@ -363,7 +363,7 @@ app.get('/deleteUser', function(req, res){
 
 /* Service to check for existing/valid invitations*/
 app.get('/checkInvitation', function(req, res){
-    console.log("/checkInvitation : "+JSON.stringify(req.query));
+    console.log(Date.now()+" :: /checkInvitation : "+JSON.stringify(req.query));
   var touser = req.query.toUser;
   var invites=readFile(__dirname+"/data/json/","invitations.json");
   invites = JSON.parse(invites);
@@ -393,7 +393,7 @@ app.get('/checkInvitation', function(req, res){
 
 /* Service to send an invitation */
 app.get('/sendInvitation', function(req, res){
-    console.log("/sendInvitation : "+JSON.stringify(req.query));
+    console.log(Date.now()+" :: /sendInvitation : "+JSON.stringify(req.query));
   var touser = req.query.toUser;
   var groupID = req.query.groupID;
   var fromuser = req.query.fromUser;
@@ -412,7 +412,7 @@ app.get('/sendInvitation', function(req, res){
        if(group.hasOwnProperty(fromuser)){
           if(users.hasOwnProperty(touser)){
               if(!invites.hasOwnProperty(touser)){
-                    console.log("New invite has been sent to user : " + touser);
+                    console.log(Date.now()+" :: New invite has been sent to user : " + touser);
                      var response = {
                        "groupID":groupID,
                        "From"   :fromuser
@@ -433,7 +433,7 @@ app.get('/sendInvitation', function(req, res){
                         res.end(JSON.stringify(response,null,'\t'));
                       }
                       else {
-                        console.log("New invite has been sent to same user for a different group ");
+                        console.log(Date.now()+" :: New invite has been sent to same user for a different group ");
                         var response = {
                           "groupID":groupID,
                           "From"   :fromuser
@@ -488,7 +488,7 @@ app.get('/sendInvitation', function(req, res){
 
 /* Service to delete the invitation */
 app.get('/deleteInvitation', function(req, res){
-    console.log("/deleteInvitation : "+JSON.stringify(req.query));
+    console.log(Date.now()+" :: /deleteInvitation : "+JSON.stringify(req.query));
   var touser = req.query.toUser;
   var groupID = req.query.groupID;
   var fromuser = req.query.fromUser;
@@ -503,7 +503,7 @@ app.get('/deleteInvitation', function(req, res){
 
 /* -------------------------- Utility function --------------------------*/
 var readFile = function(dir, fileName){
-  //console.log("Reading File : "+dir+fileName);
+  //console.log(Date.now()+" :: Reading File : "+dir+fileName);
   var data = fs.readFileSync(dir+fileName);
   return data
 };
@@ -513,7 +513,7 @@ var writeFile = function(dir, fileName, data){
         if(err){
           return console.log(err);
         }
-        console.log("File Write Complete: Updated - "+fileName);
+        console.log(Date.now()+" :: File Write Complete: Updated - "+fileName);
       });
 };
 var sizeOf = function(jsonObj){ return Object.keys(jsonObj).length };
@@ -624,5 +624,5 @@ var getGroup = function(groupID){
 var server =app.listen(8081, function(){
   var host = server.address().address;
   var port = server.address().port;
-  console.log("Example app listening  Ssdd at http://%s:%s", host, port);
+  console.log(Date.now()+" :: Example app listening  Ssdd at http://%s:%s", host, port);
 });
