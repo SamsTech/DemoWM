@@ -27,6 +27,7 @@ app.get('/addUser', function(req, res) {
     LOG(Date.now()+" :: /addUser : "+JSON.stringify(req.query));
   var fName = req.query.first_name;
   var lName = req.query.last_name;
+  var email = req.query.email;
   var nameOnCard = req.query.name_on_card;
   var card = req.query.card_type;
   var cardNumber = req.query.card_number;
@@ -43,6 +44,7 @@ app.get('/addUser', function(req, res) {
         user = {
             "firstname": fName,
             "lastname": lName,
+            "email": email,
             "password": pwd,
             "paymentcard": {
                 "nameoncard":nameOnCard,
