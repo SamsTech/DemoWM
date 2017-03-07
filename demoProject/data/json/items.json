@@ -3,55 +3,55 @@
     "name": "GREEN BEANS",
     "price": "8.3",
     "currency": "USD",
-    "imageURL": "/data/images/0000000000000000040660.jpg"
+    "imageURL": "/0000000000000000040660.jpg"
   },
   "0000000000070770000320" :{
     "name": "Milk",
     "price": "10.00",
     "currency": "USD",
-    "imageURL": "/data/images/0000000000070770000320.jpg"
+    "imageURL": "/0000000000070770000320.jpg"
   },
   "0000000000092317097050" :{
     "name": "DAIPER",
     "price": "10.73",
     "currency": "USD",
-    "imageURL": "/data/images/0000000000092317097050.jpg"
+    "imageURL": "/0000000000092317097050.jpg"
   },
   "0000000000040487311000" :{
     "name": "BEER",
     "price": "15.45",
     "currency": "USD",
-    "imageURL": "/data/images/0000000000040487311000.jpg"
+    "imageURL": "/0000000000040487311000.jpg"
   },
   "0000000000027500095310" :{
     "name": "COOKIES",
     "price": "2.01",
     "currency": "USD",
-    "imageURL": "/data/images/0000000000027500095310.jpg"
+    "imageURL": "/0000000000027500095310.jpg"
   },
   "0000000000737224257610" :{
     "name": "T-SHIRT",
     "price": "5.25",
     "currency": "USD",
-    "imageURL": "/data/images/0000000000737224257610.jpg"
+    "imageURL": "/0000000000737224257610.jpg"
   },
   "0000000000072785022290" :{
     "name": "HAND SANITZR",
     "price": "10.9",
     "currency": "USD",
-    "imageURL": "/data/images/0000000000072785022290.jpg"
+    "imageURL": "/0000000000072785022290.jpg"
   },
   "0000000000085391637620" :{
     "name": "DVD",
     "price": "5.00",
     "currency": "USD",
-    "imageURL": "/data/images/0000000000085391637620.jpg"
+    "imageURL": "/0000000000085391637620.jpg"
   },
   "0000000000071921007780":{
     "name": "PIZZA",
     "price": "15.00",
     "currency": "USD",
-    "imageURL": "/data/images/0000000000071921007780.jpg"
+    "imageURL": "/0000000000071921007780.jpg"
   }
 
 }
