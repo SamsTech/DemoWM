@@ -3,6 +3,7 @@
 		"firstname": "Akhil",
 		"lastname": "A",
 		"password": "pwd123",
+		"email": "akhileshwar.guli@gmail.com",
 		"paymentcard": {
 			"nameoncard": "A Akhil",
 			"card": "Amex",
@@ -15,6 +16,7 @@
 		"firstname": "Akhil",
 		"lastname": "D",
 		"password": "123",
+		"email": "akhileshwar.guli@gmail.com",
 		"paymentcard": {
 			"nameoncard": "D Akhil",
 			"card": "Chase",
@@ -27,6 +29,7 @@
 		"firstname": "Guli",
 		"lastname": "Akhileshwar",
 		"password": "pwd123",
+		"email": "akhileshwar.guli@gmail.com",
 		"paymentcard": {
 			"nameoncard": "Swamy Akhil",
 			"card": "Discover",
@@ -39,6 +42,7 @@
 		"firstname": "Guli",
 		"lastname": "Akhileshwar",
 		"password": "pwd123",
+		"email": "akhileshwar.guli@gmail.com",
 		"paymentcard": {
 			"nameoncard": "Swamy Akhil",
 			"card": "Amex",
@@ -51,6 +55,7 @@
 		"firstname": "Guli",
 		"lastname": "Akhileshwar",
 		"password": "pwd123",
+		"email": "akhileshwar.guli@gmail.com",
 		"paymentcard": {
 			"nameoncard": "Swamy Akhil",
 			"card": "Amex",
@@ -63,6 +68,7 @@
 		"firstname": "Guli",
 		"lastname": "Akhileshwar",
 		"password": "pwd123",
+		"email": "akhileshwar.guli@gmail.com",
 		"paymentcard": {
 			"nameoncard": "Swamy Akhil",
 			"card": "Amex",
@@ -75,6 +81,7 @@
 		"firstname": "Guli",
 		"lastname": "Akhileshwar",
 		"password": "pwd123",
+		"email": "akhileshwar.guli@gmail.com",
 		"paymentcard": {
 			"nameoncard": "Swamy Akhil",
 			"card": "Amex",
@@ -87,6 +94,7 @@
 		"firstname": "Guli",
 		"lastname": "Akhileshwar",
 		"password": "pwd123",
+		"email": "akhileshwar.guli@gmail.com",
 		"paymentcard": {
 			"nameoncard": "Swamy Akhil",
 			"card": "Amex",
