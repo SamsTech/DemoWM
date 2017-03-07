@@ -556,6 +556,7 @@ var getCart = function(ID){
                 response[element] = {
                     "name": itemDetails["name"],
                     "price": itemDetails["price"],
+                    "image": itemDetails["imageURL"],
                     "quantity": curItemDetails["quantity"],
                     "addedBy": curItemDetails["addedBy"]
                 }
