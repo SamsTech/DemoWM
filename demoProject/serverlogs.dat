@@ -1,0 +1,8 @@
+1488852453603 :: /addItem : {"cartID":"765432123456765","upc":"0000000000027500095310","quantity":"10","userID":"Akhil"}
+1488852478472 :: /addItem : {"cartID":"765432123456765","upc":"0000000000040487311000","quantity":"2","userID":"Ravi"}
+1488853341690 :: Example app listening  Ssdd at http://%s:%s
+1488853362857 :: /addItem : {"cartID":"765432123456765","upc":"0000000000040487311000","quantity":"2","userID":"Ravi"}
+1488853362861 :: ERROR - Item is already present in cart. UPC :0000000000040487311000 cartID : 765432123456765
+1488853445752 :: Example app listening at http://%s:%s
+1488853485040 :: /addItem : {"cartID":"765432123456765","upc":"0000000000040487311000","quantity":"2","userID":"Ravi"}
+1488853496198 :: ERROR - Item is already present in cart. UPC :0000000000040487311000 cartID : 765432123456765
