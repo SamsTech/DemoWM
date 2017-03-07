@@ -17,14 +17,14 @@ app.get('/listUser', function(req, res){
 app.get('/getUser', function(req, res) {
   var response = getUser(req.query.userID);
   if(response.hasOwnProperty("error")){
-      console.error(response["description"]);
+      LOG(Date.now()+" :: ERROR - "+response["description"]);
   }
   res.end(JSON.stringify(response));
 });
 
 // This function Adds new users
 app.get('/addUser', function(req, res) {
-    console.log(Date.now()+" :: /addUser : "+JSON.stringify(req.query));
+    LOG(Date.now()+" :: /addUser : "+JSON.stringify(req.query));
   var fName = req.query.first_name;
   var lName = req.query.last_name;
   var nameOnCard = req.query.name_on_card;
@@ -60,7 +60,7 @@ app.get('/addUser', function(req, res) {
             "error": "110",
             "description": "USerID: "+userID+" already present."
         }
-        console.error(response["description"]);
+        LOG(Date.now()+" :: ERROR - "+response["description"]);
     }
 
     res.end(JSON.stringify(response));
@@ -68,7 +68,7 @@ app.get('/addUser', function(req, res) {
 
 // This function Add new Items to the specified cart
 app.get('/addItem', function(req,res){
-    console.log(Date.now()+" :: /addItem : "+JSON.stringify(req.query));
+    LOG(Date.now()+" :: /addItem : "+JSON.stringify(req.query));
   var cartID = req.query.cartID;
   var upc = req.query.upc;
   var userID = req.query.userID;
@@ -101,14 +101,14 @@ app.get('/addItem', function(req,res){
                   } else {
                       // ERROR Item not present
                       response = itemDetails;
-                      console.error(response["description"]);
+                      LOG(Date.now()+" :: ERROR - "+response["description"]);
                   }
               } else {
                   response = {
                       "error": "300",
                       "description": "Item is already present in cart. UPC :"+upc+" cartID : "+cartID
                   };
-                  console.error(response["description"]);
+                  LOG(Date.now()+" :: ERROR - "+response["description"]);
               }
           }
           else {
@@ -116,7 +116,7 @@ app.get('/addItem', function(req,res){
                   "error": "200",
                   "description":"Cart Status is not In Progress"
               };
-              console.error(response["description"]);
+              LOG(Date.now()+" :: ERROR - "+response["description"]);
           }
 
       } else {
@@ -124,7 +124,7 @@ app.get('/addItem', function(req,res){
               "error": "330",
               "description": "User "+userID+" not authorized to add to cartd : "+cartID
           };
-          console.error(response["description"]);
+          LOG(Date.now()+" :: ERROR - "+response["description"]);
       }
   } else {
 
@@ -150,14 +150,14 @@ app.get('/addItem', function(req,res){
               writeFile(__dirname+"/data/json/","carts.json", carts);
           } else {
               response = item;
-              console.error(response["description"]);
+              LOG(Date.now()+" :: ERROR - "+response["description"]);
           }
       } else {
           response = {
               "error": "700",
               "description": "No group is associated witht cartID: "+cartID
           };
-          console.error(response["description"]);
+          LOG(Date.now()+" :: ERROR - "+response["description"]);
       }
   }
 
@@ -166,8 +166,7 @@ app.get('/addItem', function(req,res){
 
 // This function is user to delete Item from given cart
 app.get('/deleteItem', function(req, res){
-    console.log(Date.now()+" :: /deleteItem : "+JSON.stringify(req.query));
-
+    LOG(Date.now()+" :: /deleteItem : "+JSON.stringify(req.query));
     var cartID = req.query.cartID;
     var upc = req.query.upc;
     var userID = req.query.userID;
@@ -185,7 +184,7 @@ app.get('/deleteItem', function(req, res){
                     if(cart.hasOwnProperty(upc)){ // Check if cart has the item
                         // delete the item from cart
                         delete cart[upc];
-                        console.log(Date.now()+" :: Deleted Item: "+upc+" from cart: "+cartID+" by User:"+userID);
+                        LOG(Date.now()+" :: Deleted Item: "+upc+" from cart: "+cartID+" by User:"+userID);
                         carts[cartID] = cart;
                         writeFile(__dirname+"/data/json/","carts.json",carts);
 
@@ -194,29 +193,29 @@ app.get('/deleteItem', function(req, res){
                             "error" : "220",
                             "description": "Item : "+upc+" not found in cart: "+cartID
                         };
-                        console.error(response["description"]);
+                        LOG(Date.now()+" :: ERROR - "+response["description"]);
                     }
                 } else {
                     response = {
                         "error" : "210",
                         "description": "User: "+userID+" not authorized to cart: "+cartID
                     };
-                    console.error(response["description"]);
+                    LOG(Date.now()+" :: ERROR - "+response["description"]);
                 }
             } else {
                 response = {
                     "error": "210",
                     "description": "CartID : "+cartID+" is already CheckedOut"
                 };
-                console.error(response["description"]);
+                LOG(Date.now()+" :: ERROR - "+response["description"]);
             }
         } else {
             response = cart;
-            console.error(response["description"]);
+            LOG(Date.now()+" :: ERROR - "+response["description"]);
         }
     } else {
         response = itemDetails;
-        console.error(response["description"]);
+        LOG(Date.now()+" :: ERROR - "+response["description"]);
     }
 
     res.end(JSON.stringify(response));
@@ -224,17 +223,17 @@ app.get('/deleteItem', function(req, res){
 
 // This funciton is to get a cart
 app.get('/getCart', function(req, res){
-    //console.log(Date.now()+" :: /getCart : "+JSON.stringify(req.query));
+    //LOG(Date.now()+" :: /getCart : "+JSON.stringify(req.query));
   var response = getCart(req.query.cartID);
   res.end(JSON.stringify(response));
 });
 
 // This function is for checkout
 app.get('/checkout', function(req, res){
-    console.log(Date.now()+" :: /checkout : "+JSON.stringify(req.query));
+    LOG(Date.now()+" :: /checkout : "+JSON.stringify(req.query));
   var cartID = req.query.cartID;
   var userID = req.query.userID;
-  console.log(Date.now()+" :: /checkout : "+JSON.stringify(req.query));
+  LOG(Date.now()+" :: /checkout : "+JSON.stringify(req.query));
 
   var cart = getOnlyCart(req.query.cartID);
   var response = null;
@@ -249,20 +248,20 @@ app.get('/checkout', function(req, res){
               carts[cartID] = cart;
               response = true;
               writeFile(__dirname+"/data/json/","carts.json", carts);
-              console.log(Date.now()+" :: /Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
+              LOG(Date.now()+" :: /Checkout: CartID "+cartID+" CHECKED OUT by "+userID);
           } else {
               response = {
                   "error": "900",
                   "description": "Empty cart cannot be CheckedOut." + "\n" + JSON.stringify(cart, null, '\t')
               };
-              console.error(response["description"]);
+              LOG(Date.now()+" :: ERROR - "+response["description"]);
           }
       } else {
           response = {
               "error":"550",
               "description": "Cart is already CheckedOut. CartID : "+cartID
           };
-          console.error(response["description"]);
+          LOG(Date.now()+" :: ERROR - "+response["description"]);
       }
 
     } else {
@@ -270,28 +269,28 @@ app.get('/checkout', function(req, res){
               "error": "330",
               "description": "User "+userID+" not authorized to checkout cartd : "+cartID
           };
-          console.error(response["description"]);
+          LOG(Date.now()+" :: ERROR - "+response["description"]);
     }
   }
   else{
     // CartID not found
     response = cart;
-      console.error(response["description"]);
+      LOG(Date.now()+" :: ERROR - "+response["description"]);
   }
 
   res.end(JSON.stringify(response));
 });
 
 app.get("/getGroup", function(req, res){
-  console.log(Date.now()+" :: /getGroup : "+JSON.stringify(req.query));
+  LOG(Date.now()+" :: /getGroup : "+JSON.stringify(req.query));
   var groupID = req.query.groupID;
   var response = getGroup(groupID);
   res.end(JSON.stringify(response));
 });
 
 app.get("/addGroup", function(req, res){
-  console.log(Date.now()+" :: /addGroup: "+JSON.stringify(req.query));
-
+  LOG(Date.now()+" :: /addGroup: "+JSON.stringify(req.query));
+  LOG(Date.now()+" :: /addGroup: "+JSON.stringify(req.query));
   var groupID = req.query.groupID;
   var userID = req.query.userID;
   var groups = readFile(__dirname+"/data/json/", "groups.json");
@@ -308,14 +307,14 @@ app.get("/addGroup", function(req, res){
         "error": "440",
         "description": "User "+userID+" is already a member of Group : "+groupID
       };
-        console.error(response["description"]);
+        LOG(Date.now()+" :: ERROR - "+response["description"]);
     } else {
         // check for valid user
         if(users.hasOwnProperty(userID)){
             // Add user
             groupUsers[userID] = "USER";
             groups[groupID] = groupUsers;
-            console.log(Date.now()+" :: User "+userID+" added to group "+groupID);
+            LOG(Date.now()+" :: User "+userID+" added to group "+groupID);
             response = true;
             writeFile(__dirname+"/data/json/", "groups.json",groups);
         } else {
@@ -323,7 +322,7 @@ app.get("/addGroup", function(req, res){
                 "error": "400",
                 "description": " User ID: "+userID+" not registered."
             };
-            console.error(response["description"]);
+            LOG(Date.now()+" :: ERROR - "+response["description"]);
         }
     }
 
@@ -334,8 +333,8 @@ app.get("/addGroup", function(req, res){
           var groupUsers={};
           groupUsers[userID] = "OWNER";
           groups[groupID] = groupUsers;
-          console.log(Date.now()+" :: New Group create, groupID: "+groupID+" with user "+userID+" as OWNER");
-          console.log(JSON.stringify(groups[groupID], null, '\t'));
+          LOG(Date.now()+" :: New Group create, groupID: "+groupID+" with user "+userID+" as OWNER");
+          LOG(JSON.stringify(groups[groupID], null, '\t'));
           response = true;
           writeFile(__dirname+"/data/json/", "groups.json",groups);
       } else {
@@ -343,7 +342,7 @@ app.get("/addGroup", function(req, res){
               "error": "400",
               "description": " User ID: "+userID+" not registered."
           };
-          console.error(response["description"]);
+          LOG(Date.now()+" :: ERROR - "+response["description"]);
       }
   }
   res.end(JSON.stringify(response));
@@ -355,7 +354,7 @@ app.get('/deleteUser', function(req, res){
   var users = readFile(__dirname+"/data/json/","users.json");
   users = JSON.parse(users);
   delete users["user"+ID];
-  console.log(Date.now()+" :: Number of Users : "+sizeOf(users))
+  LOG(Date.now()+" :: Number of Users : "+sizeOf(users))
   writeFile(__dirname+"/data/json/","users.json", users);
 });
 
@@ -363,7 +362,7 @@ app.get('/deleteUser', function(req, res){
 
 /* Service to check for existing/valid invitations*/
 app.get('/checkInvitation', function(req, res){
-    console.log(Date.now()+" :: /checkInvitation : "+JSON.stringify(req.query));
+    LOG(Date.now()+" :: /checkInvitation : "+JSON.stringify(req.query));
   var touser = req.query.toUser;
   var invites=readFile(__dirname+"/data/json/","invitations.json");
   invites = JSON.parse(invites);
@@ -379,21 +378,21 @@ app.get('/checkInvitation', function(req, res){
              "error": "222",
              "description":"No invitations have been sent for user: "+ touser
          };
-         console.error(response["description"]);
+         LOG(Date.now()+" :: ERROR - "+response["description"]);
      }
  } else {
      response = {
          "error": "700",
          "description":"User: "+ touser+ " is not Registered."
      };
-     console.error(response["description"]);
+     LOG(Date.now()+" :: ERROR - "+response["description"]);
  }
   res.end(JSON.stringify(response,null,'\t'));
 });
 
 /* Service to send an invitation */
 app.get('/sendInvitation', function(req, res){
-    console.log(Date.now()+" :: /sendInvitation : "+JSON.stringify(req.query));
+    LOG(Date.now()+" :: /sendInvitation : "+JSON.stringify(req.query));
   var touser = req.query.toUser;
   var groupID = req.query.groupID;
   var fromuser = req.query.fromUser;
@@ -404,7 +403,7 @@ app.get('/sendInvitation', function(req, res){
   invites = JSON.parse(invites);
   groups = JSON.parse(groups);
   users = JSON.parse(users);
-  console.log(invites);
+  LOG(invites);
   var group = groups[groupID];
 
   if(users.hasOwnProperty(fromuser)){
@@ -412,7 +411,7 @@ app.get('/sendInvitation', function(req, res){
        if(group.hasOwnProperty(fromuser)){
           if(users.hasOwnProperty(touser)){
               if(!invites.hasOwnProperty(touser)){
-                    console.log(Date.now()+" :: New invite has been sent to user : " + touser);
+                    LOG(Date.now()+" :: New invite has been sent to user : " + touser);
                      var response = {
                        "groupID":groupID,
                        "From"   :fromuser
@@ -429,11 +428,11 @@ app.get('/sendInvitation', function(req, res){
                           "error":"322",
                           "description":"Invitation is already sent to user: "+ touser + " for groupID: "+ groupID + " by user: "+ invites[touser].From
                         };
-                          console.error(response["description"]);
+                          LOG(Date.now()+" :: ERROR - "+response["description"]);
                         res.end(JSON.stringify(response,null,'\t'));
                       }
                       else {
-                        console.log(Date.now()+" :: New invite has been sent to same user for a different group ");
+                        LOG(Date.now()+" :: New invite has been sent to same user for a different group ");
                         var response = {
                           "groupID":groupID,
                           "From"   :fromuser
@@ -451,7 +450,7 @@ app.get('/sendInvitation', function(req, res){
                                   "error":"302",
                                   "description":"To user: " + touser+ " is not authorized to access this group: " + groupID
                                   };
-              console.error(response["description"]);
+              LOG(Date.now()+" :: ERROR - "+response["description"]);
               res.end(JSON.stringify(response,null,'\t'));
           }
        }
@@ -460,7 +459,7 @@ app.get('/sendInvitation', function(req, res){
                       "error":"302",
                       "description":"From user " + fromuser+ " is not authorized to access this group: " + groupID
                       };
-           console.error(response["description"]);
+           LOG(Date.now()+" :: ERROR - "+response["description"]);
         res.end(JSON.stringify(response,null,'\t'));
       }
     }
@@ -470,7 +469,7 @@ app.get('/sendInvitation', function(req, res){
       "error":"304",
       "description":"Group ID: " + groupID + " is not valid"
     };
-        console.error(response["description"]);
+        LOG(Date.now()+" :: ERROR - "+response["description"]);
     res.end(JSON.stringify(response,null,'\t'));
 
 }
@@ -481,14 +480,14 @@ app.get('/sendInvitation', function(req, res){
       "error":"300",
       "description":"From user " + fromuser + " is not a valid user"
     };
-      console.error(response["description"]);
+      LOG(Date.now()+" :: ERROR - "+response["description"]);
     res.end(JSON.stringify(response,null,'\t'));
   }
 });
 
 /* Service to delete the invitation */
 app.get('/deleteInvitation', function(req, res){
-    console.log(Date.now()+" :: /deleteInvitation : "+JSON.stringify(req.query));
+    LOG(Date.now()+" :: /deleteInvitation : "+JSON.stringify(req.query));
   var touser = req.query.toUser;
   var groupID = req.query.groupID;
   var fromuser = req.query.fromUser;
@@ -497,13 +496,13 @@ app.get('/deleteInvitation', function(req, res){
 
   delete invites[touser];
 
-  console.log ("Invitation from "+ fromuser +" denied by :"+ touser );
+  LOG(Date.now()+" :: Invitation from "+ fromuser +" denied by :"+ touser );
   writeFile(__dirname+"/data/json/","invitations.json",invites);
 });
 
 /* -------------------------- Utility function --------------------------*/
 var readFile = function(dir, fileName){
-  //console.log(Date.now()+" :: Reading File : "+dir+fileName);
+  //LOG(Date.now()+" :: Reading File : "+dir+fileName);
   var data = fs.readFileSync(dir+fileName);
   return data
 };
@@ -511,11 +510,25 @@ var writeFile = function(dir, fileName, data){
   var result = fs.writeFile(dir+fileName,
       JSON.stringify(data, null,'\t'), function(err){
         if(err){
-          return console.log(err);
+          return LOG(err);
         }
-        console.log(Date.now()+" :: File Write Complete: Updated - "+fileName);
+        LOG(Date.now()+" :: File Write Complete: Updated - "+fileName);
       });
 };
+
+var LOG = function (logMessage){
+    if(logMessage.indexOf("ERROR") > -1){
+        console.error(logMessage);
+    } else {
+        console.log(logMessage);
+    }
+    var result = fs.appendFile(__dirname+"/serverlogs.dat",
+        logMessage+"\n", function(err){
+            if(err){
+                return LOG(err);
+            }
+        });
+}
 var sizeOf = function(jsonObj){ return Object.keys(jsonObj).length };
 
 var getCart = function(ID){
@@ -551,7 +564,7 @@ var getCart = function(ID){
             "error" : "400",
             "description":"CartID not found. CartID: "+cartID
         };
-        console.error(response["description"]);
+        LOG(Date.now()+" :: ERROR - "+response["description"]);
     }
     return response;
 };
@@ -624,5 +637,5 @@ var getGroup = function(groupID){
 var server =app.listen(8081, function(){
   var host = server.address().address;
   var port = server.address().port;
-  console.log(Date.now()+" :: Example app listening  Ssdd at http://%s:%s", host, port);
+  LOG(Date.now()+" :: Example app listening at http://%s:%s", host, port);
 });

@@ -23,5 +23,26 @@
     "name": "COOKIES",
     "price": "2.01",
     "currency": "USD"
+  },
+  "0000000000737224257610" :{
+    "name": "T-SHIRT",
+    "price": "5.25",
+    "currency": "USD"
+  },
+  "0000000000072785022290" :{
+    "name": "HAND SANITZR",
+    "price": "10.9",
+    "currency": "USD"
+  },
+  "0000000000085391637620" :{
+    "name": "DVD",
+    "price": "5.00",
+    "currency": "USD"
+  },
+  "0000000000071921007780":{
+    "name": "PIZZA",
+    "price": "15.00",
+    "currency": "USD"
   }
+
 }
