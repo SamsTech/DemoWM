@@ -639,7 +639,7 @@ var getGroup = function(groupID){
   return response;
 }
 /* -------------------------- Server Config --------------------------*/
-var server =app.listen(8081, function(){
+var server =app.listen(80, function(){
   var host = server.address().address;
   var port = server.address().port;
   LOG(Date.now()+" :: Example app listening at http://%s:%s", host, port);
