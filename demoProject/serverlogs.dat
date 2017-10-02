@@ -6,3 +6,4 @@
 1488853445752 :: Example app listening at http://%s:%s
 1488853485040 :: /addItem : {"cartID":"765432123456765","upc":"0000000000040487311000","quantity":"2","userID":"Ravi"}
 1488853496198 :: ERROR - Item is already present in cart. UPC :0000000000040487311000 cartID : 765432123456765
+1506980784234 :: Example app listening at http://%s:%s
